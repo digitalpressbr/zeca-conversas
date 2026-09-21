@@ -116,6 +116,11 @@ button{cursor:pointer}
 .pick input{width:24px;height:24px;accent-color:#2E5B3D}
 .sec{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--green);margin-top:6px}
 .perfil{display:grid;justify-items:center;gap:10px;padding:10px 0}
+.regras{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.regras li{display:flex;gap:8px;align-items:center;color:var(--muted)}
+.regras li::before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);flex:none}
+.regras li.ok{color:var(--green)}
+.regras li.ok::before{background:var(--green);border-color:var(--green)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 90px);background:#1E2A22;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw}
 </style>
 </head>
@@ -128,9 +133,32 @@ button{cursor:pointer}
     <h2>Zeca</h2>
     <p>Conversas da equipe da Cerrado Consultoria</p>
     <div class="gente" id="gente"></div>
-    <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" inputmode="text" placeholder="8 letras e números"></div>
+    <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" inputmode="text" placeholder="Sua senha"></div>
     <button class="btn" id="entrar" type="button" disabled>Entrar</button>
     <div class="erro" id="erro-login" role="alert"></div>
+  </div></div>
+</section>
+
+<!-- CRIAR SENHA -->
+<section class="tela" id="t-senha" hidden>
+  <div class="scroll"><div class="login">
+    <div class="logo" role="img" aria-label="Zeca"></div>
+    <h2 id="s-tit">Crie sua senha</h2>
+    <p id="s-sub">No primeiro acesso cada pessoa cria a própria senha. Ela fica só com você.</p>
+    <div class="fld"><label for="s-nova">Nova senha</label><input id="s-nova" type="password" autocomplete="new-password"></div>
+    <div class="fld"><label for="s-conf">Repita a senha</label><input id="s-conf" type="password" autocomplete="new-password"></div>
+    <ul class="regras" id="s-regras">
+      <li data-r="tam">Pelo menos 6 caracteres</li>
+      <li data-r="mai">Uma letra maiúscula</li>
+      <li data-r="min">Uma letra minúscula</li>
+      <li data-r="num">Um número</li>
+      <li data-r="sim">Um símbolo (@ # ! $ …)</li>
+      <li data-r="ini">Diferente da senha inicial</li>
+      <li data-r="igu">As duas senhas iguais</li>
+    </ul>
+    <button class="btn" id="s-salvar" type="button" disabled>Salvar minha senha</button>
+    <button class="btn sec" id="s-cancelar" type="button" hidden>Cancelar</button>
+    <div class="erro" id="s-erro" role="alert"></div>
   </div></div>
 </section>
 
@@ -192,7 +220,7 @@ const sb = supabase.createClient(SUPA_URL, SUPA_ANON, {auth:{persistSession:true
 const $ = id => document.getElementById(id);
 let eu = null, perfis = {}, conversas = [], atual = null, canal = null, instalarEvt = null;
 
-function mostrar(id){ ["t-login","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
+function mostrar(id){ ["t-login","t-senha","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function fmt(s){ return esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>").replace(/(^|\s)_([^_\n]+)_/g,"$1<i>$2</i>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 function hora(d){ const x = new Date(d); return x.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
@@ -230,7 +258,8 @@ function telaLogin(){
 async function entrar(){
   $("erro-login").textContent = "";
   $("entrar").disabled = true;
-  const { error } = await sb.auth.signInWithPassword({email: escolhido, password: $("senha").value.trim()});
+  senhaInicial = $("senha").value.trim();
+  const { error } = await sb.auth.signInWithPassword({email: escolhido, password: senhaInicial});
   $("entrar").disabled = false;
   if (error){ $("erro-login").textContent = "Senha não confere. Confira e tente de novo."; return; }
   $("senha").value = "";
@@ -238,6 +267,36 @@ async function entrar(){
 }
 $("entrar").onclick = entrar;
 $("senha").addEventListener("keydown", e => { if (e.key === "Enter" && escolhido) entrar(); });
+
+// ---------------- criar senha (1º acesso obrigatório; depois pelo perfil)
+let senhaInicial = "", senhaOpcional = false;
+function regrasSenha(){
+  const n = $("s-nova").value, c = $("s-conf").value;
+  const r = {tam: n.length >= 6, mai: /[A-Z]/.test(n), min: /[a-z]/.test(n), num: /\d/.test(n), sim: /[^A-Za-z0-9]/.test(n),
+             ini: n.length > 0 && n !== senhaInicial, igu: n.length > 0 && n === c};
+  $("s-regras").querySelectorAll("li").forEach(li => li.classList.toggle("ok", !!r[li.dataset.r]));
+  $("s-salvar").disabled = !Object.values(r).every(Boolean);
+}
+["s-nova","s-conf"].forEach(id => $(id).addEventListener("input", regrasSenha));
+function telaSenha(opcional){
+  senhaOpcional = !!opcional;
+  $("s-tit").textContent = opcional ? "Trocar minha senha" : "Crie sua senha";
+  $("s-sub").textContent = opcional ? "Escolha uma senha nova." : "No primeiro acesso cada pessoa cria a própria senha. Ela fica só com você.";
+  $("s-cancelar").hidden = !opcional;
+  $("s-nova").value = ""; $("s-conf").value = ""; $("s-erro").textContent = ""; regrasSenha();
+  mostrar("t-senha"); setTimeout(() => $("s-nova").focus(), 100);
+}
+$("s-salvar").onclick = async () => {
+  $("s-salvar").disabled = true; $("s-erro").textContent = "";
+  const { error } = await sb.auth.updateUser({password: $("s-nova").value});
+  if (error){ $("s-erro").textContent = "Não salvou: " + (error.message || "tente de novo"); regrasSenha(); return; }
+  await sb.from("zeca_perfis").update({trocar_senha:false}).eq("id", eu.id);
+  perfis[eu.id].trocar_senha = false;
+  toast("Senha salva.");
+  $("s-nova").value = ""; $("s-conf").value = "";
+  await depoisDoLogin();
+};
+$("s-cancelar").onclick = () => mostrar("t-lista");
 
 // ---------------- dados
 async function carregarPerfis(){
@@ -464,7 +523,9 @@ $("b-perfil").onclick = () => {
   folha(`<div class="perfil">${avatar(p,"av xl")}<h3>${esc(p.nome)}</h3>
     <button class="btn" type="button" id="p-foto">${p.foto_url ? "Trocar minha foto" : "Colocar minha foto"}</button></div>
     <button class="btn sec" type="button" id="p-push">Avisos de mensagem: ${Notification && Notification.permission === "granted" ? "ativados" : "ativar"}</button>
+    <button class="btn sec" type="button" id="p-senha">Trocar minha senha</button>
     <button class="btn sec" type="button" id="p-sair">Sair</button>`);
+  $("p-senha").onclick = () => { fecharFolha(); senhaInicial = ""; telaSenha(true); };
   $("p-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_perfis").update({foto_url:url}).eq("id", eu.id); perfis[eu.id].foto_url = url; $("meu-av").outerHTML = avatar(perfis[eu.id],"av sm").replace('class="av sm"','class="av sm" id="meu-av"'); fecharFolha(); atualizarLista(); }, "perfis/" + eu.id);
   $("p-push").onclick = () => { fecharFolha(); ativarPush(); };
   $("p-sair").onclick = async () => { fecharFolha(); await sb.auth.signOut(); location.hash = ""; location.reload(); };
@@ -511,6 +572,10 @@ async function iniciar(){
   await carregarPerfis();
   if (!perfis[eu.id]){ await sb.auth.signOut(); telaLogin(); return; }
   $("meu-av").outerHTML = avatar(perfis[eu.id],"av sm").replace('class="av sm"','class="av sm" id="meu-av"');
+  if (perfis[eu.id].trocar_senha){ telaSenha(false); return; }
+  await depoisDoLogin();
+}
+async function depoisDoLogin(){
   await carregarConversas();
   desenharLista();
   mostrar("t-lista");
