@@ -1,0 +1,3 @@
+Figurinhas de emoji geradas a partir do Fluent Emoji (Microsoft), licença MIT.
+https://github.com/microsoft/fluentui-emoji
+Copyright (c) Microsoft Corporation.
