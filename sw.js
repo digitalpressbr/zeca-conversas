@@ -1,5 +1,5 @@
 // Zeca: service worker (avisos de mensagem). 21/09/2026.
-const VERSAO = "zeca-v1";
+const VERSAO = "zeca-v2";
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("push", e => {
