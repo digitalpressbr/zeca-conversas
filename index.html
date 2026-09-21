@@ -186,6 +186,27 @@ button{cursor:pointer}
 .visor{position:fixed;inset:0;background:#000;z-index:70;display:grid;place-items:center}
 .visor img{max-width:100%;max-height:100%}
 .visor button{position:absolute;top:calc(var(--safe-t) + 10px);left:10px;color:#fff}
+.fotoops{display:flex;gap:26px;padding:6px 8px 4px}
+.fotoops button{border:0;background:none;display:grid;justify-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.fotoops .cc{width:58px;height:58px;border-radius:50%;border:1px solid var(--line);color:var(--accent2);display:grid;place-items:center}
+.fotoops .cc.perigo{color:var(--danger)}
+.fotoedit{position:relative;border:0;background:none;padding:0;border-radius:50%}
+.fotoedit .av.xl{width:160px;height:160px;font-size:60px}
+.fotoedit .cam{position:absolute;right:4px;bottom:4px;width:46px;height:46px;border-radius:50%;background:var(--accent2);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.campo{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;text-align:left;border:0;background:none;padding:12px 6px;border-bottom:1px solid var(--line);width:100%}
+.campo small{grid-column:1;color:var(--muted);font-size:13px}
+.campo b{grid-column:1;font-weight:400;font-size:16.5px}
+.campo .lapis{grid-column:2;grid-row:1/3;color:var(--accent2)}
+.recorte{position:fixed;inset:0;background:#000;z-index:80;display:flex;flex-direction:column;color:#fff;touch-action:none}
+.rc-topo{display:flex;align-items:center;gap:8px;padding:calc(var(--safe-t) + 6px) 8px 6px}
+.rc-topo b{font-weight:500;font-size:17px}
+.rc-area{flex:1;position:relative;overflow:hidden;touch-action:none;cursor:grab}
+.rc-area img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.rc-circ{position:absolute;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.62);outline:1.5px solid rgba(255,255,255,.85);pointer-events:none}
+.rc-baixo{display:flex;align-items:center;justify-content:space-between;padding:14px 18px calc(var(--safe-b) + 14px);gap:10px}
+.rc-baixo span{font-size:12.5px;opacity:.7;text-align:center}
+.rc-baixo button{border:0;background:none;color:#fff;font-size:16.5px;font-weight:500;padding:8px}
+.rc-baixo [data-ok]{color:#25D366}
 @media (prefers-color-scheme: dark){ .naolidas{background:rgba(0,0,0,.35)} .aud .bar{background:rgba(255,255,255,.2)} }
 </style>
 </head>
@@ -209,6 +230,8 @@ button{cursor:pointer}
   <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></symbol>
   <symbol id="i-grupo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g></symbol>
   <symbol id="i-fig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 4h16v10l-6 6H4z"/><path d="M14 20v-6h6"/></g></symbol>
+  <symbol id="i-galeria" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
+  <symbol id="i-lapis" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></symbol>
   <symbol id="i-t2" viewBox="0 0 16 11"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M.8 5.8 4.3 9.3 10.8 1.8M7.2 8.4l.9.9 6.5-7.5"/></symbol>
 </svg>
 
@@ -297,6 +320,7 @@ button{cursor:pointer}
 
 <div class="folha" id="folha" hidden><div class="cx" id="folha-cx"></div></div>
 <input type="file" id="foto-in" accept="image/*" hidden>
+<input type="file" id="foto-cam-perfil" accept="image/*" capture="user" hidden>
 
 <script>
 const SUPA_URL = "https://hadbqjgfqfokutltiqra.supabase.co", SUPA_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w", VAPID = "BKrWAf-4BN-hdC07T53lnevpRPoxRZH3DW7-qMKNaDXCgHM11JGAVHmUYiiNTg1ihACxkFMmtp1NAz6TtUhb1lU";
@@ -785,7 +809,7 @@ function infoConversa(){
   const c = atual; if (!c) return;
   if (c.tipo !== "grupo"){
     const p = c.outro || {zeca:true, nome:"Zeca"};
-    folha(`<div class="perfil">${avatar(p,"av xl")}<h3>${esc(p.nome || "Zeca")}</h3><small style="color:var(--muted)">${c.outro ? "Equipe Cerrado Consultoria" : "Assistente da Cerrado Consultoria"}</small></div>`);
+    folha(`<div class="perfil">${avatar(p,"av xl")}<h3>${esc(p.nome || "Zeca")}</h3><small style="color:var(--muted)">${c.outro ? esc(c.outro.recado || "Equipe Cerrado Consultoria") : "Assistente da Cerrado Consultoria"}</small></div>`);
     return;
   }
   folha(`<div class="perfil">${avConversa(c,"av xl")}<h3>${esc(c.titulo)}</h3><small style="color:var(--muted)">Grupo · ${c.membros.length + (c.zeca ? 1 : 0)} participantes</small>
@@ -795,7 +819,7 @@ function infoConversa(){
     ${c.zeca ? `<div class="pick">${avatar({zeca:true},"av sm")}<span><b>Zeca</b></span><span></span></div>` : ""}
     <button class="op" type="button" id="gi-add"><span class="cc"><svg width="22" height="22"><use href="#i-nova"/></svg></span><span><b>Adicionar participante</b></span></button>
     <button class="op perigo" type="button" id="gi-sair"><span><b>Sair do grupo</b></span></button>`);
-  $("gi-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_conversas").update({foto_url:url}).eq("id", c.id); c.foto_url = url; $("c-av").innerHTML = avConversa(c,"av sm"); infoConversa(); }, "grupos/" + c.id);
+  $("gi-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_conversas").update({foto_url:url}).eq("id", c.id); c.foto_url = url; $("c-av").innerHTML = avConversa(c,"av sm"); infoConversa(); }, "grupos/" + c.id, !!c.foto_url);
   $("gi-add").onclick = () => {
     const fora = Object.values(perfis).filter(p => !c.membros.includes(p.id));
     if (!fora.length){ toast("Todos da equipe já estão no grupo."); return; }
@@ -829,25 +853,96 @@ function menuGeral(e, ops){
 $("b-voltar").onclick = () => { fecharPainel(); atual = null; history.replaceState(null, "", "#"); mostrar("t-lista"); atualizarLista(); };
 async function sair(){ await sb.auth.signOut(); location.hash = ""; location.reload(); }
 
+// ---------------- foto de perfil e de grupo: Câmera / Galeria / Remover e recorte em círculo com pinça
 let fotoCb = null, fotoPrefixo = "";
-function escolherFoto(cb, prefixo){ fotoCb = cb; fotoPrefixo = prefixo; $("foto-in").click(); }
-$("foto-in").onchange = async () => {
-  const f = $("foto-in").files[0]; $("foto-in").value = ""; if (!f || !fotoCb) return;
-  toast("Ajustando a foto…");
-  const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = URL.createObjectURL(f); });
-  const lado = Math.min(img.width, img.height), T = 320, cv = document.createElement("canvas"); cv.width = cv.height = T;
-  cv.getContext("2d").drawImage(img, (img.width - lado)/2, (img.height - lado)/2, lado, lado, 0, 0, T, T);
-  const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.85));
-  const path = `${fotoPrefixo}-${Date.now()}.jpg`;
-  const up = await sb.storage.from("zeca-fotos").upload(path, blob, {contentType:"image/jpeg", upsert:true});
-  if (up.error){ toast("Não subiu a foto."); return; }
-  await fotoCb(sb.storage.from("zeca-fotos").getPublicUrl(path).data.publicUrl); toast("Foto atualizada.");
-};
+function escolherFoto(cb, prefixo, temFoto){
+  fotoCb = cb; fotoPrefixo = prefixo;
+  const d = document.createElement("div"); d.className = "folha"; d.id = "folha-foto";
+  d.innerHTML = `<div class="cx"><h3>Foto</h3><div class="fotoops">
+    <button type="button" data-o="cam"><span class="cc"><svg width="26" height="26"><use href="#i-camera"/></svg></span>Câmera</button>
+    <button type="button" data-o="gal"><span class="cc"><svg width="26" height="26"><use href="#i-galeria"/></svg></span>Galeria</button>
+    ${temFoto ? `<button type="button" data-o="rem"><span class="cc perigo"><svg width="26" height="26"><use href="#i-lixo"/></svg></span>Remover</button>` : ""}</div></div>`;
+  d.onclick = e => { if (e.target === d) d.remove(); };
+  d.querySelectorAll("[data-o]").forEach(b => b.onclick = async () => {
+    d.remove();
+    if (b.dataset.o === "cam") $("foto-cam-perfil").click();
+    else if (b.dataset.o === "gal") $("foto-in").click();
+    else if (confirm("Remover a foto?")) { await fotoCb(null); toast("Foto removida."); }
+  });
+  document.body.appendChild(d);
+}
+["foto-in","foto-cam-perfil"].forEach(id => $(id).onchange = () => { const f = $(id).files[0]; $(id).value = ""; if (f && fotoCb) recortar(f); });
+
+function recortar(arquivo){
+  const url = URL.createObjectURL(arquivo);
+  const tela = document.createElement("div"); tela.className = "recorte";
+  tela.innerHTML = `<div class="rc-topo"><button type="button" class="ib" data-x aria-label="Cancelar"><svg><use href="#i-voltar"/></svg></button><b>Mover e redimensionar</b></div>
+    <div class="rc-area"><img alt="" draggable="false"><div class="rc-circ"></div></div>
+    <div class="rc-baixo"><button type="button" data-x>Cancelar</button><span>Arraste e use dois dedos para aproximar</span><button type="button" data-ok>Concluído</button></div>`;
+  document.body.appendChild(tela);
+  const area = tela.querySelector(".rc-area"), img = tela.querySelector("img"), circ = tela.querySelector(".rc-circ");
+  let W = 0, H = 0, D = 0, cx = 0, cy = 0, s = 1, sMin = 1, tx = 0, ty = 0;
+  const ptr = new Map(); let ini = null;
+  function medir(){
+    const r = area.getBoundingClientRect(); D = Math.round(Math.min(r.width, r.height) * 0.86); cx = r.width / 2; cy = r.height / 2;
+    circ.style.width = circ.style.height = D + "px"; circ.style.left = (cx - D/2) + "px"; circ.style.top = (cy - D/2) + "px";
+  }
+  function prender(){
+    s = Math.max(sMin, Math.min(s, sMin * 8));
+    tx = Math.min(cx - D/2, Math.max(cx + D/2 - W*s, tx));
+    ty = Math.min(cy - D/2, Math.max(cy + D/2 - H*s, ty));
+    img.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+  }
+  function zoomEm(fator, px, py){ const n = Math.max(sMin, Math.min(s * fator, sMin * 8)), k = n / s; tx = px - (px - tx) * k; ty = py - (py - ty) * k; s = n; prender(); }
+  img.onload = () => { W = img.naturalWidth; H = img.naturalHeight; medir(); sMin = D / Math.min(W, H); s = sMin; tx = cx - W*s/2; ty = cy - H*s/2; prender(); };
+  img.onerror = () => { fechar(); toast("Não consegui abrir essa imagem."); };
+  img.src = url;
+  const local = e => { const r = area.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  area.addEventListener("pointerdown", e => { area.setPointerCapture(e.pointerId); ptr.set(e.pointerId, local(e)); ini = null; });
+  area.addEventListener("pointermove", e => {
+    if (!ptr.has(e.pointerId)) return;
+    const antes = ptr.get(e.pointerId), agora = local(e);
+    ptr.set(e.pointerId, agora);
+    if (ptr.size === 1){ tx += agora.x - antes.x; ty += agora.y - antes.y; prender(); return; }
+    const [a, b] = [...ptr.values()], dist = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+    if (ini){ tx += mx - ini.mx; ty += my - ini.my; zoomEm(dist / ini.dist, mx, my); }
+    ini = {dist, mx, my};
+  });
+  const solta = e => { ptr.delete(e.pointerId); ini = null; };
+  area.addEventListener("pointerup", solta); area.addEventListener("pointercancel", solta);
+  area.addEventListener("wheel", e => { e.preventDefault(); const p = local(e); zoomEm(e.deltaY < 0 ? 1.1 : 1/1.1, p.x, p.y); }, {passive:false});
+  area.addEventListener("dblclick", e => { const p = local(e); zoomEm(s > sMin * 1.5 ? sMin / s : 2, p.x, p.y); });
+  const aoGirar = () => { if (!W) return; const f = s / sMin; medir(); sMin = D / Math.min(W, H); s = sMin * f; prender(); };
+  window.addEventListener("resize", aoGirar);
+  function fechar(){ window.removeEventListener("resize", aoGirar); URL.revokeObjectURL(url); tela.remove(); }
+  tela.querySelectorAll("[data-x]").forEach(b => b.onclick = fechar);
+  tela.querySelector("[data-ok]").onclick = async () => {
+    if (!W) return;
+    const T = 640, cv = document.createElement("canvas"); cv.width = cv.height = T;
+    const g = cv.getContext("2d"); g.imageSmoothingQuality = "high";
+    g.drawImage(img, (cx - D/2 - tx) / s, (cy - D/2 - ty) / s, D / s, D / s, 0, 0, T, T);
+    const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.88));
+    fechar(); toast("Salvando a foto…");
+    const path = `${fotoPrefixo}-${Date.now()}.jpg`;
+    const up = await sb.storage.from("zeca-fotos").upload(path, blob, {contentType:"image/jpeg", upsert:true});
+    if (up.error){ toast("Não subiu a foto."); return; }
+    await fotoCb(sb.storage.from("zeca-fotos").getPublicUrl(path).data.publicUrl); toast("Foto atualizada.");
+  };
+}
+
+// ---------------- meu perfil (foto com câmera, nome e recado)
 function meuPerfil(){
   const p = perfis[eu.id];
-  folha(`<div class="perfil">${avatar(p,"av xl")}<h3>${esc(p.nome)}</h3>
-    <button class="btn" type="button" id="p-foto">${p.foto_url ? "Trocar minha foto" : "Colocar minha foto"}</button></div>`);
-  $("p-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_perfis").update({foto_url:url}).eq("id", eu.id); perfis[eu.id].foto_url = url; fecharFolha(); atualizarLista(); }, "perfis/" + eu.id);
+  folha(`<div class="perfil"><button type="button" class="fotoedit" id="p-foto" aria-label="Trocar foto">${avatar(p,"av xl")}<span class="cam"><svg width="22" height="22"><use href="#i-camera"/></svg></span></button></div>
+    <div class="campo"><small>Nome</small><b>${esc(p.nome)}</b></div>
+    <button type="button" class="campo" id="p-recado"><small>Recado</small><b>${esc(p.recado || "Disponível")}</b><svg width="20" height="20" class="lapis"><use href="#i-lapis"/></svg></button>`);
+  const salvarFoto = async url => { await sb.from("zeca_perfis").update({foto_url:url}).eq("id", eu.id); perfis[eu.id].foto_url = url; meuPerfil(); atualizarLista(); };
+  $("p-foto").onclick = () => escolherFoto(salvarFoto, "perfis/" + eu.id, !!p.foto_url);
+  $("p-recado").onclick = async () => {
+    const r = prompt("Recado", p.recado || "Disponível"); if (r === null) return;
+    const v = r.trim().slice(0, 140) || "Disponível";
+    await sb.from("zeca_perfis").update({recado:v}).eq("id", eu.id); perfis[eu.id].recado = v; meuPerfil();
+  };
 }
 
 // ---------------- avisos (Web Push)
