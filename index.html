@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Zeca</title>
+<meta name="theme-color" content="#2E5B3D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zeca">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#F7F5EE; --card:#FFFFFF; --ink:#1E2A22; --muted:#626A62; --line:#E6E1D2; --line2:#D6CFBC;
+  --green:#2E5B3D; --green2:#1F402B; --green-soft:#E6EFE8; --yellow:#E9B84A; --danger:#B4452F;
+  --chat:#EFE9DC; --mine:#DCEBD9; --theirs:#FFFFFF; --zeca:#FFFDF6; --head:#2E5B3D; --head-ink:#FFFFFF;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#131714; --card:#1B211D; --ink:#E7ECE6; --muted:#A3AD9F; --line:#2A332C; --line2:#374238;
+    --green:#7FB08D; --green2:#A6CCB0; --green-soft:#1F2D23; --danger:#E08A74;
+    --chat:#0F1310; --mine:#23402C; --theirs:#1F2621; --zeca:#262B22; --head:#1B2A20; --head-ink:#E7ECE6;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;overscroll-behavior:none}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+.tela{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--card);max-width:720px;margin:0 auto}
+.hdr{display:flex;align-items:center;gap:8px;padding:calc(var(--safe-t) + 8px) 8px 10px 12px;background:var(--head);color:var(--head-ink);flex:none}
+.hdr h1{font-size:21px;font-weight:800;margin:0;flex:1;letter-spacing:-.01em}
+.hdr .tit{flex:1;min-width:0;cursor:pointer}
+.hdr .tit b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .tit small{display:block;font-size:12.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{background:none;border:0;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:inherit;flex:none}
+.ib:active{background:rgba(255,255,255,.18)}
+.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px;flex:none;background:#2F6B9A;background-size:cover;background-position:center;overflow:hidden}
+.av.sm{width:38px;height:38px;font-size:15px}
+.av.xl{width:120px;height:120px;font-size:44px}
+.av.zeca{background-color:#F7F5EE;background-image:url(zeca.png);box-shadow:inset 0 0 0 2px var(--yellow)}
+.av.grupo{background:var(--green)}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* login */
+.login{padding:calc(var(--safe-t) + 40px) 24px 24px;display:grid;gap:18px;align-content:start;max-width:440px;margin:0 auto;width:100%}
+.login .logo{width:92px;height:92px;border-radius:50%;background:#F7F5EE url(zeca.png) center/cover;box-shadow:0 0 0 3px var(--yellow);justify-self:center}
+.login h2{text-align:center;margin:0;font-size:24px}
+.login p{text-align:center;margin:0;color:var(--muted)}
+.gente{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gente button{display:grid;justify-items:center;gap:8px;padding:14px 8px;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+.gente button[aria-pressed="true"]{border:2px solid var(--green);background:var(--green-soft)}
+.fld{display:grid;gap:6px}
+.fld label{font-size:13px;font-weight:700;color:var(--muted)}
+.fld input{font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--bg)}
+.fld input:focus{outline:2px solid var(--green);outline-offset:1px}
+.btn{padding:14px;border-radius:12px;border:0;background:var(--green);color:#fff;font-weight:700;font-size:16px}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line2)}
+.btn:disabled{opacity:.5}
+.erro{color:var(--danger);font-size:14px;text-align:center;min-height:1em}
+/* lista */
+.aviso{margin:10px 12px 0;padding:12px 14px;border-radius:12px;background:var(--green-soft);display:grid;gap:8px;font-size:14px}
+.aviso b{font-size:15px}
+.aviso .acoes{display:flex;gap:8px;flex-wrap:wrap}
+.aviso button{padding:8px 12px;border-radius:10px;border:0;background:var(--green);color:#fff;font-weight:700;font-size:14px}
+.aviso button.sec{background:transparent;color:var(--green);border:1px solid var(--green)}
+.row{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:10px 14px;width:100%;border:0;background:none;text-align:left}
+.row:active{background:var(--bg)}
+.row .nm{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .pv{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rt{display:grid;justify-items:end;gap:4px;font-size:12px;color:var(--muted)}
+.row .rt.un{color:var(--green);font-weight:700}
+.row .n{background:var(--green);color:#fff;font-weight:800;font-size:11.5px;min-width:21px;height:21px;border-radius:11px;display:grid;place-items:center;padding:0 6px}
+.vazio{padding:40px 24px;text-align:center;color:var(--muted);display:grid;gap:10px}
+.fab{position:fixed;right:max(18px, calc(50vw - 360px + 18px));bottom:calc(var(--safe-b) + 22px);width:58px;height:58px;border-radius:17px;background:var(--green);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 6px 16px rgba(20,50,30,.35)}
+/* chat */
+.msgs{flex:1;overflow-y:auto;background:var(--chat);padding:10px 10px 14px;display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch}
+.dia{align-self:center;font-size:12px;font-weight:600;color:var(--muted);background:var(--card);padding:3px 10px;border-radius:8px;margin:6px 0}
+.m{max-width:84%;padding:6px 10px 4px;border-radius:12px;background:var(--theirs);font-size:15.5px;line-height:1.4;box-shadow:0 1px 0 rgba(0,0,0,.06);word-wrap:break-word;overflow-wrap:anywhere}
+.m.eu{align-self:flex-end;background:var(--mine)}
+.m.z{background:var(--zeca);border:1px solid var(--line)}
+.m .qm{font-size:12.5px;font-weight:700;margin-bottom:1px}
+.m .hr{font-size:11px;color:var(--muted);text-align:right;margin-top:1px}
+.m .tx{white-space:pre-wrap}
+.m.sis{align-self:center;background:transparent;box-shadow:none;font-size:13px;color:var(--muted);font-style:italic;border:0}
+.bts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.bts button{padding:6px 11px;border-radius:10px;border:1px solid var(--line2);background:var(--card);color:var(--green);font-weight:600;font-size:14px}
+.arq{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:rgba(46,91,61,.08);border:0;width:100%;text-align:left}
+.arq .ic{width:36px;height:42px;border-radius:6px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:end center;padding-bottom:5px;flex:none}
+.arq b{display:block;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+.arq small{color:var(--muted);font-size:12px}
+.img{display:block;max-width:240px;width:100%;border-radius:10px;margin-top:2px}
+.digitando{align-self:flex-start;font-size:13px;color:var(--muted);font-style:italic;padding:2px 6px}
+.comp{display:flex;align-items:flex-end;gap:6px;padding:8px 8px calc(var(--safe-b) + 8px);background:var(--card);border-top:1px solid var(--line);flex:none}
+.comp textarea{flex:1;resize:none;max-height:120px;min-height:44px;border:1px solid var(--line);background:var(--bg);border-radius:22px;padding:11px 16px;font-size:16px;line-height:1.35}
+.comp textarea:focus{outline:2px solid var(--green);outline-offset:0}
+.env{width:46px;height:46px;border-radius:50%;background:var(--green);color:#fff;border:0;display:grid;place-items:center;flex:none}
+.cl{color:var(--muted)}
+/* folhas */
+.folha{position:fixed;inset:0;background:rgba(10,14,11,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.folha .cx{background:var(--card);width:100%;max-width:720px;border-radius:20px 20px 0 0;padding:18px 18px calc(var(--safe-b) + 18px);display:grid;gap:12px;max-height:88vh;overflow-y:auto}
+.folha h3{margin:0;font-size:18px}
+.op{display:flex;align-items:center;gap:14px;padding:10px 4px;border:0;background:none;width:100%;text-align:left;border-radius:12px}
+.op:active{background:var(--bg)}
+.op b{display:block;font-size:16px}
+.op small{display:block;color:var(--muted);font-size:13.5px}
+.op .cc{width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;flex:none}
+.pick{display:grid;grid-template-columns:40px 1fr 28px;gap:12px;align-items:center;padding:6px 2px}
+.pick input{width:24px;height:24px;accent-color:#2E5B3D}
+.sec{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--green);margin-top:6px}
+.perfil{display:grid;justify-items:center;gap:10px;padding:10px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 90px);background:#1E2A22;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="tela" id="t-login" hidden>
+  <div class="scroll"><div class="login">
+    <div class="logo" role="img" aria-label="Zeca"></div>
+    <h2>Zeca</h2>
+    <p>Conversas da equipe da Cerrado Consultoria</p>
+    <div class="gente" id="gente"></div>
+    <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" inputmode="text" placeholder="8 letras e números"></div>
+    <button class="btn" id="entrar" type="button" disabled>Entrar</button>
+    <div class="erro" id="erro-login" role="alert"></div>
+  </div></div>
+</section>
+
+<!-- LISTA -->
+<section class="tela" id="t-lista" hidden>
+  <div class="hdr">
+    <h1>Zeca</h1>
+    <button class="ib" id="b-perfil" type="button" aria-label="Meu perfil"><span class="av sm" id="meu-av"></span></button>
+  </div>
+  <div class="scroll" id="lista-sc">
+    <div class="aviso" id="aviso-push" hidden>
+      <b>Ativar os avisos de mensagem</b>
+      <span id="aviso-push-tx">Para o celular avisar cada mensagem nova, mesmo bloqueado.</span>
+      <div class="acoes"><button type="button" id="b-push">Ativar avisos</button><button type="button" class="sec" id="b-push-depois">Depois</button></div>
+    </div>
+    <div class="aviso" id="aviso-ios" hidden>
+      <b>No iPhone, instale o Zeca na tela inicial</b>
+      <span>Toque em <b>Compartilhar</b> (quadrado com seta, embaixo), depois <b>Adicionar à Tela de Início</b>. Abra pelo ícone do Zeca: aí dá para ativar os avisos.</span>
+      <div class="acoes"><button type="button" class="sec" id="b-ios-ok">Entendi</button></div>
+    </div>
+    <div class="aviso" id="aviso-instalar" hidden>
+      <b>Instalar o Zeca no celular</b>
+      <span>Fica com ícone na tela inicial e abre como aplicativo.</span>
+      <div class="acoes"><button type="button" id="b-instalar">Instalar</button></div>
+    </div>
+    <div id="lista"></div>
+  </div>
+  <button class="fab" id="b-nova" type="button" aria-label="Nova conversa"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6M9 10h6"/></svg></button>
+</section>
+
+<!-- CHAT -->
+<section class="tela" id="t-chat" hidden>
+  <div class="hdr">
+    <button class="ib" id="b-voltar" type="button" aria-label="Voltar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+    <span id="c-av"></span>
+    <div class="tit" id="c-tit"><b id="c-nome"></b><small id="c-sub"></small></div>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <form class="comp" id="form" autocomplete="off">
+    <button class="ib cl" type="button" id="b-anexo" aria-label="Anexar arquivo"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+    <input type="file" id="arquivo" hidden>
+    <textarea id="txt" rows="1" placeholder="Mensagem" aria-label="Mensagem"></textarea>
+    <button class="env" type="submit" aria-label="Enviar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
+  </form>
+</section>
+
+<div class="folha" id="folha" hidden><div class="cx" id="folha-cx"></div></div>
+<input type="file" id="foto-in" accept="image/*" hidden>
+
+<script>
+const SUPA_URL = "https://hadbqjgfqfokutltiqra.supabase.co", SUPA_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w", VAPID = "BKrWAf-4BN-hdC07T53lnevpRPoxRZH3DW7-qMKNaDXCgHM11JGAVHmUYiiNTg1ihACxkFMmtp1NAz6TtUhb1lU";
+const EQUIPE = [
+  {nome:"Rodrigo", email:"rodrigo@zeca.cerradoconsultoria.agr.br", cor:"#2F6B9A"},
+  {nome:"Isabela", email:"isabela@zeca.cerradoconsultoria.agr.br", cor:"#6C4CB8"},
+  {nome:"Cristiane", email:"cristiane@zeca.cerradoconsultoria.agr.br", cor:"#B4452F"},
+  {nome:"Victor", email:"victor@zeca.cerradoconsultoria.agr.br", cor:"#9A5B12"}
+];
+const sb = supabase.createClient(SUPA_URL, SUPA_ANON, {auth:{persistSession:true, autoRefreshToken:true}});
+const $ = id => document.getElementById(id);
+let eu = null, perfis = {}, conversas = [], atual = null, canal = null, instalarEvt = null;
+
+function mostrar(id){ ["t-login","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmt(s){ return esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>").replace(/(^|\s)_([^_\n]+)_/g,"$1<i>$2</i>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+function hora(d){ const x = new Date(d); return x.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
+function quando(d){
+  const x = new Date(d), h = new Date(); const ontem = new Date(h); ontem.setDate(h.getDate()-1);
+  if (x.toDateString() === h.toDateString()) return hora(d);
+  if (x.toDateString() === ontem.toDateString()) return "Ontem";
+  return x.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+}
+function toast(t){ const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(()=>d.remove(), 2600); }
+function avatar(p, cls="av"){
+  if (!p) return `<span class="${cls}">?</span>`;
+  if (p.zeca) return `<span class="${cls} zeca" aria-label="Zeca"></span>`;
+  if (p.foto_url) return `<span class="${cls}" style="background-image:url('${esc(p.foto_url)}')" aria-label="${esc(p.nome)}"></span>`;
+  return `<span class="${cls}" style="background-color:${esc(p.cor||"#2F6B9A")}">${esc((p.nome||"?")[0])}</span>`;
+}
+function avConversa(c, cls="av"){
+  if (c.tipo === "grupo") return c.foto_url ? `<span class="${cls}" style="background-image:url('${esc(c.foto_url)}')"></span>`
+    : `<span class="${cls} grupo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>`;
+  const outro = c.outro;
+  return outro ? avatar(outro, cls) : avatar({zeca:true}, cls);
+}
+
+// ---------------- login
+let escolhido = null;
+function telaLogin(){
+  $("gente").innerHTML = EQUIPE.map(p => `<button type="button" data-e="${p.email}" aria-pressed="false">${avatar(p)}<b>${p.nome}</b></button>`).join("");
+  $("gente").querySelectorAll("button").forEach(b => b.onclick = () => {
+    escolhido = b.dataset.e;
+    $("gente").querySelectorAll("button").forEach(o => o.setAttribute("aria-pressed", o === b));
+    $("entrar").disabled = false; $("senha").focus();
+  });
+  mostrar("t-login");
+}
+async function entrar(){
+  $("erro-login").textContent = "";
+  $("entrar").disabled = true;
+  const { error } = await sb.auth.signInWithPassword({email: escolhido, password: $("senha").value.trim()});
+  $("entrar").disabled = false;
+  if (error){ $("erro-login").textContent = "Senha não confere. Confira e tente de novo."; return; }
+  $("senha").value = "";
+  await iniciar();
+}
+$("entrar").onclick = entrar;
+$("senha").addEventListener("keydown", e => { if (e.key === "Enter" && escolhido) entrar(); });
+
+// ---------------- dados
+async function carregarPerfis(){
+  const { data } = await sb.from("zeca_perfis").select("*");
+  perfis = {}; (data||[]).forEach(p => perfis[p.id] = p);
+}
+async function carregarConversas(){
+  const uid = eu.id;
+  const { data: mems } = await sb.from("zeca_membros").select("conversa_id,lido_ate").eq("perfil_id", uid);
+  const ids = (mems||[]).map(m => m.conversa_id);
+  if (!ids.length){ conversas = []; return; }
+  const lido = {}; (mems||[]).forEach(m => lido[m.conversa_id] = m.lido_ate);
+  const { data: cs } = await sb.from("zeca_conversas").select("*").in("id", ids).order("atualizado_em", {ascending:false});
+  const { data: todosMem } = await sb.from("zeca_membros").select("conversa_id,perfil_id").in("conversa_id", ids);
+  conversas = await Promise.all((cs||[]).map(async c => {
+    c.membros = (todosMem||[]).filter(m => m.conversa_id === c.id).map(m => m.perfil_id);
+    if (c.tipo === "individual"){
+      const o = c.membros.find(id => id !== uid);
+      c.outro = o ? perfis[o] : null;
+      c.titulo = c.outro ? c.outro.nome : "Zeca";
+    } else c.titulo = c.nome || "Grupo";
+    const { data: ult } = await sb.from("zeca_mensagens").select("*").eq("conversa_id", c.id).order("id",{ascending:false}).limit(1);
+    c.ultima = (ult||[])[0] || null;
+    const { count } = await sb.from("zeca_mensagens").select("id", {count:"exact", head:true})
+      .eq("conversa_id", c.id).gt("criado_em", lido[c.id]).or(`autor_id.is.null,autor_id.neq.${uid}`).neq("tipo","sistema");
+    c.naoLidas = count || 0;
+    return c;
+  }));
+}
+function desenharLista(){
+  const L = $("lista");
+  if (!conversas.length){
+    L.innerHTML = `<div class="vazio"><b>Nenhuma conversa ainda</b><span>Toque no botão verde para conversar com o Zeca, com alguém da equipe ou criar um grupo.</span></div>`;
+  } else {
+    L.innerHTML = conversas.map(c => {
+      const u = c.ultima;
+      let pv = "";
+      if (u){
+        const quem = u.autor_id === eu.id ? "Você: " : (c.tipo === "grupo" && u.tipo !== "sistema" ? (u.autor_nome + ": ") : "");
+        pv = quem + (u.tipo === "arquivo" ? "📎 " + (u.arquivo_nome||"arquivo") : (u.texto||""));
+      }
+      return `<button type="button" class="row" data-c="${c.id}">${avConversa(c)}
+        <span style="min-width:0"><div class="nm">${esc(c.titulo)}</div><div class="pv">${esc(pv)}</div></span>
+        <span class="rt ${c.naoLidas?"un":""}"><span>${u?quando(u.criado_em):""}</span>${c.naoLidas?`<span class="n">${c.naoLidas}</span>`:"<span></span>"}</span></button>`;
+    }).join("");
+    L.querySelectorAll(".row").forEach(b => b.onclick = () => abrir(b.dataset.c));
+  }
+  const total = conversas.reduce((a,c) => a + c.naoLidas, 0);
+  try { if (navigator.setAppBadge) total ? navigator.setAppBadge(total) : navigator.clearAppBadge(); } catch(e){}
+  document.title = total ? `(${total}) Zeca` : "Zeca";
+}
+async function atualizarLista(){ await carregarConversas(); if (!$("t-lista").hidden) desenharLista(); }
+
+// ---------------- chat
+async function abrir(id){
+  atual = conversas.find(c => c.id === id);
+  if (!atual){ await carregarConversas(); atual = conversas.find(c => c.id === id); if (!atual) return; }
+  $("c-av").innerHTML = avConversa(atual, "av sm");
+  $("c-nome").textContent = atual.titulo;
+  $("c-sub").textContent = atual.tipo === "grupo"
+    ? atual.membros.map(m => m === eu.id ? "Você" : (perfis[m]||{}).nome).filter(Boolean).concat(atual.zeca ? ["Zeca"] : []).join(", ")
+    : (atual.outro ? "equipe Cerrado" : "assistente da Cerrado");
+  mostrar("t-chat");
+  history.replaceState(null, "", "#c=" + id);
+  const { data } = await sb.from("zeca_mensagens").select("*").eq("conversa_id", id).order("id", {ascending:true}).limit(300);
+  $("msgs").innerHTML = "";
+  let dia = "";
+  (data||[]).forEach(m => { const d = new Date(m.criado_em).toDateString(); if (d !== dia){ dia = d; addDia(m.criado_em); } addMsg(m); });
+  rolar(); marcarLido();
+}
+function addDia(d){ const x = document.createElement("div"); x.className = "dia"; const h = quando(d); x.textContent = /:/.test(h) ? "Hoje" : h; $("msgs").appendChild(x); }
+function addMsg(m){
+  const d = document.createElement("div");
+  if (m.tipo === "sistema"){ d.className = "m sis"; d.textContent = m.texto; $("msgs").appendChild(d); return; }
+  const meu = m.autor_id === eu.id, z = !m.autor_id;
+  d.className = "m" + (meu ? " eu" : "") + (z ? " z" : "");
+  const p = z ? null : perfis[m.autor_id];
+  let h = (!meu && atual.tipo === "grupo") ? `<div class="qm" style="color:${z ? "var(--green)" : esc((p||{}).cor||"#2F6B9A")}">${esc(m.autor_nome)}</div>` : "";
+  if (m.tipo === "arquivo"){
+    const ehImg = (m.arquivo_mime||"").startsWith("image/");
+    h += ehImg ? `<img class="img" data-path="${esc(m.arquivo_path)}" alt="${esc(m.arquivo_nome)}">`
+               : `<button type="button" class="arq" data-path="${esc(m.arquivo_path)}"><span class="ic">${esc(((m.arquivo_nome||"").split(".").pop()||"ARQ").toUpperCase().slice(0,4))}</span><span><b>${esc(m.arquivo_nome)}</b><small>Toque para abrir</small></span></button>`;
+    if (m.texto) h += `<div class="tx">${fmt(m.texto)}</div>`;
+  } else h += `<div class="tx">${fmt(m.texto)}</div>`;
+  if (m.botoes && m.botoes.length) h += `<div class="bts">${m.botoes.map(b => `<button type="button" data-b="${esc(b)}">${esc(b)}</button>`).join("")}</div>`;
+  h += `<div class="hr">${hora(m.criado_em)}</div>`;
+  d.innerHTML = h;
+  d.querySelectorAll("[data-b]").forEach(b => b.onclick = () => enviarTexto(b.dataset.b));
+  d.querySelectorAll("[data-path]").forEach(async el => {
+    const { data } = await sb.storage.from("zeca-anexos").createSignedUrl(el.dataset.path, 3600);
+    if (!data) return;
+    if (el.tagName === "IMG"){ el.src = data.signedUrl; el.onclick = () => window.open(data.signedUrl, "_blank"); }
+    else el.onclick = () => window.open(data.signedUrl, "_blank");
+  });
+  $("msgs").appendChild(d);
+}
+function botaoDoZeca(t){ return [...$("msgs").querySelectorAll(".m.z [data-b]")].slice(-8).some(b => b.dataset.b === t); }
+function rolar(){ const M = $("msgs"); M.scrollTop = M.scrollHeight; }
+async function marcarLido(){ if (atual) await sb.from("zeca_membros").update({lido_ate: new Date().toISOString()}).eq("conversa_id", atual.id).eq("perfil_id", eu.id); }
+async function enviarTexto(t){
+  t = (t||"").trim(); if (!t || !atual) return;
+  const { error } = await sb.from("zeca_mensagens").insert({conversa_id: atual.id, autor_id: eu.id, autor_nome: perfis[eu.id].nome, tipo:"texto", texto:t});
+  if (error){ toast("Não enviou. Confira a internet e tente de novo."); return; }
+  if (atual.zeca && (atual.tipo === "individual" || /^\s*zeca/i.test(t) || botaoDoZeca(t))){
+    setTimeout(() => { const d = document.createElement("div"); d.className = "digitando"; d.textContent = "Zeca está digitando…"; $("msgs").appendChild(d); rolar(); }, 400);
+  }
+}
+$("form").onsubmit = e => { e.preventDefault(); const t = $("txt").value; $("txt").value = ""; ajustarTxt(); enviarTexto(t); };
+function ajustarTxt(){ const t = $("txt"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }
+$("txt").addEventListener("input", ajustarTxt);
+$("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer:fine)").matches){ e.preventDefault(); $("form").requestSubmit(); } });
+$("b-anexo").onclick = () => $("arquivo").click();
+$("arquivo").onchange = async () => {
+  const f = $("arquivo").files[0]; $("arquivo").value = ""; if (!f || !atual) return;
+  if (f.size > 20*1024*1024){ toast("Arquivo acima de 20 MB."); return; }
+  toast("Enviando " + f.name + "…");
+  const path = `${atual.id}/${Date.now()}-${f.name.replace(/[^\w.\-() ]+/g,"_")}`;
+  const up = await sb.storage.from("zeca-anexos").upload(path, f, {contentType: f.type || "application/octet-stream"});
+  if (up.error){ toast("Não subiu o arquivo."); return; }
+  await sb.from("zeca_mensagens").insert({conversa_id: atual.id, autor_id: eu.id, autor_nome: perfis[eu.id].nome, tipo:"arquivo", arquivo_path:path, arquivo_nome:f.name, arquivo_mime:f.type});
+};
+$("b-voltar").onclick = () => { atual = null; history.replaceState(null, "", "#"); mostrar("t-lista"); atualizarLista(); };
+$("c-tit").onclick = () => { if (atual && atual.tipo === "grupo") infoGrupo(); };
+
+// ---------------- tempo real
+function assinar(){
+  if (canal) sb.removeChannel(canal);
+  canal = sb.channel("zeca-" + eu.id)
+    .on("postgres_changes", {event:"INSERT", schema:"public", table:"zeca_mensagens"}, p => {
+      const m = p.new;
+      if (atual && m.conversa_id === atual.id && !$("t-chat").hidden){
+        const ult = $("msgs").lastElementChild;
+        if (ult && ult.classList.contains("digitando")) ult.remove();
+        addMsg(m); rolar(); marcarLido();
+      } else atualizarLista();
+    })
+    .on("postgres_changes", {event:"INSERT", schema:"public", table:"zeca_membros"}, () => atualizarLista())
+    .subscribe();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && eu){ atualizarLista(); if (atual && !$("t-chat").hidden) abrir(atual.id); } });
+
+// ---------------- nova conversa
+function folha(html){ $("folha-cx").innerHTML = html; $("folha").hidden = false; }
+function fecharFolha(){ $("folha").hidden = true; }
+$("folha").onclick = e => { if (e.target.id === "folha") fecharFolha(); };
+$("b-nova").onclick = () => {
+  const outros = Object.values(perfis).filter(p => p.id !== eu.id);
+  folha(`<h3>Nova conversa</h3>
+    <button class="op" type="button" id="n-grupo"><span class="cc"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span><b>Novo grupo</b><small>Várias pessoas e o Zeca na mesma conversa</small></span></button>
+    <div class="sec">Conversa individual</div>
+    <button class="op" type="button" data-ind="zeca">${avatar({zeca:true})}<span><b>Zeca</b><small>Só você e o assistente</small></span></button>
+    ${outros.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>${p.papel === "proprietario" ? "Proprietária(o)" : "Equipe"}</small></span></button>`).join("")}`);
+  $("n-grupo").onclick = novoGrupo;
+  $("folha-cx").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => individual(b.dataset.ind));
+};
+async function individual(alvo){
+  fecharFolha();
+  const ja = conversas.find(c => c.tipo === "individual" && (alvo === "zeca" ? (c.zeca && c.membros.length === 1) : (!c.zeca && c.membros.includes(alvo) && c.membros.length === 2)));
+  if (ja){ abrir(ja.id); return; }
+  const { data: c, error } = await sb.from("zeca_conversas").insert({tipo:"individual", zeca: alvo === "zeca", criado_por: eu.id}).select().single();
+  if (error){ toast("Não consegui criar a conversa."); return; }
+  const mems = [{conversa_id:c.id, perfil_id:eu.id}]; if (alvo !== "zeca") mems.push({conversa_id:c.id, perfil_id:alvo});
+  await sb.from("zeca_membros").insert(mems);
+  await carregarConversas(); abrir(c.id);
+}
+function novoGrupo(){
+  const outros = Object.values(perfis).filter(p => p.id !== eu.id);
+  folha(`<h3>Novo grupo</h3>
+    <div class="fld"><label for="g-nome">Nome do grupo</label><input id="g-nome" type="text" placeholder="Ex.: Custeio Soja 26/27" maxlength="60"></div>
+    <div class="sec">Participantes</div>
+    ${outros.map(p => `<label class="pick" for="g-${p.id}">${avatar(p,"av sm")}<span><b>${esc(p.nome)}</b></span><input id="g-${p.id}" type="checkbox" data-p="${p.id}"></label>`).join("")}
+    <label class="pick" for="g-zeca">${avatar({zeca:true},"av sm")}<span><b>Zeca</b><small style="display:block;color:var(--muted);font-size:13px">Responde quando a mensagem começa com "Zeca"</small></span><input id="g-zeca" type="checkbox" checked></label>
+    <button class="btn" type="button" id="g-criar">Criar grupo</button>`);
+  $("g-criar").onclick = async () => {
+    const nome = $("g-nome").value.trim();
+    if (!nome){ toast("Dê um nome ao grupo."); return; }
+    const sel = [...$("folha-cx").querySelectorAll("[data-p]")].filter(i => i.checked).map(i => i.dataset.p);
+    const { data: c, error } = await sb.from("zeca_conversas").insert({tipo:"grupo", nome, zeca: $("g-zeca").checked, criado_por: eu.id}).select().single();
+    if (error){ toast("Não consegui criar o grupo."); return; }
+    await sb.from("zeca_membros").insert([eu.id, ...sel].map(p => ({conversa_id:c.id, perfil_id:p})));
+    await sb.from("zeca_mensagens").insert({conversa_id:c.id, autor_id:eu.id, autor_nome:perfis[eu.id].nome, tipo:"sistema", texto:`${perfis[eu.id].nome} criou o grupo "${nome}"`});
+    fecharFolha(); await carregarConversas(); abrir(c.id);
+  };
+}
+function infoGrupo(){
+  const c = atual;
+  folha(`<div class="perfil">${avConversa(c,"av xl")}<h3>${esc(c.titulo)}</h3>
+    <button class="btn sec" type="button" id="gi-foto">Trocar foto do grupo</button></div>
+    <div class="sec">Participantes</div>
+    ${c.membros.map(m => `<div class="pick">${avatar(perfis[m],"av sm")}<span><b>${esc(m === eu.id ? "Você" : (perfis[m]||{}).nome)}</b></span><span></span></div>`).join("")}
+    ${c.zeca ? `<div class="pick">${avatar({zeca:true},"av sm")}<span><b>Zeca</b></span><span></span></div>` : ""}
+    <button class="btn sec" type="button" id="gi-add">Adicionar participante</button>`);
+  $("gi-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_conversas").update({foto_url:url}).eq("id", c.id); c.foto_url = url; $("c-av").innerHTML = avConversa(c,"av sm"); infoGrupo(); }, "grupos/" + c.id);
+  $("gi-add").onclick = () => {
+    const fora = Object.values(perfis).filter(p => !c.membros.includes(p.id));
+    if (!fora.length){ toast("Todos da equipe já estão no grupo."); return; }
+    folha(`<h3>Adicionar ao grupo</h3>${fora.map(p => `<button class="op" type="button" data-add="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b></span></button>`).join("")}`);
+    $("folha-cx").querySelectorAll("[data-add]").forEach(b => b.onclick = async () => {
+      await sb.from("zeca_membros").insert({conversa_id:c.id, perfil_id:b.dataset.add});
+      await sb.from("zeca_mensagens").insert({conversa_id:c.id, autor_id:eu.id, autor_nome:perfis[eu.id].nome, tipo:"sistema", texto:`${perfis[eu.id].nome} adicionou ${perfis[b.dataset.add].nome}`});
+      fecharFolha(); await carregarConversas(); abrir(c.id);
+    });
+  };
+}
+
+// ---------------- fotos
+let fotoCb = null, fotoPrefixo = "";
+function escolherFoto(cb, prefixo){ fotoCb = cb; fotoPrefixo = prefixo; $("foto-in").click(); }
+$("foto-in").onchange = async () => {
+  const f = $("foto-in").files[0]; $("foto-in").value = ""; if (!f || !fotoCb) return;
+  toast("Ajustando a foto…");
+  const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = URL.createObjectURL(f); });
+  const lado = Math.min(img.width, img.height), T = 320, cv = document.createElement("canvas"); cv.width = cv.height = T;
+  cv.getContext("2d").drawImage(img, (img.width - lado)/2, (img.height - lado)/2, lado, lado, 0, 0, T, T);
+  const blob = await new Promise(ok => cv.toBlob(ok, "image/jpeg", 0.85));
+  const path = `${fotoPrefixo}-${Date.now()}.jpg`;
+  const up = await sb.storage.from("zeca-fotos").upload(path, blob, {contentType:"image/jpeg", upsert:true});
+  if (up.error){ toast("Não subiu a foto."); return; }
+  const url = sb.storage.from("zeca-fotos").getPublicUrl(path).data.publicUrl;
+  await fotoCb(url); toast("Foto atualizada.");
+};
+$("b-perfil").onclick = () => {
+  const p = perfis[eu.id];
+  folha(`<div class="perfil">${avatar(p,"av xl")}<h3>${esc(p.nome)}</h3>
+    <button class="btn" type="button" id="p-foto">${p.foto_url ? "Trocar minha foto" : "Colocar minha foto"}</button></div>
+    <button class="btn sec" type="button" id="p-push">Avisos de mensagem: ${Notification && Notification.permission === "granted" ? "ativados" : "ativar"}</button>
+    <button class="btn sec" type="button" id="p-sair">Sair</button>`);
+  $("p-foto").onclick = () => escolherFoto(async url => { await sb.from("zeca_perfis").update({foto_url:url}).eq("id", eu.id); perfis[eu.id].foto_url = url; $("meu-av").outerHTML = avatar(perfis[eu.id],"av sm").replace('class="av sm"','class="av sm" id="meu-av"'); fecharFolha(); atualizarLista(); }, "perfis/" + eu.id);
+  $("p-push").onclick = () => { fecharFolha(); ativarPush(); };
+  $("p-sair").onclick = async () => { fecharFolha(); await sb.auth.signOut(); location.hash = ""; location.reload(); };
+};
+
+// ---------------- avisos (Web Push)
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const instalado = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function b64(s){ const p = "=".repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); }
+async function registrarSW(){ if (!("serviceWorker" in navigator)) return null; try { return await navigator.serviceWorker.register("sw.js"); } catch(e){ return null; } }
+async function ativarPush(){
+  if (ehIOS && !instalado){ $("aviso-ios").hidden = false; toast("No iPhone, instale na tela inicial primeiro."); return; }
+  if (!("Notification" in window) || !("PushManager" in window)){ toast("Este navegador não recebe avisos. Use o Chrome (Android) ou instale na tela inicial (iPhone)."); return; }
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted"){ toast("Avisos bloqueados. Libere nos ajustes do celular."); return; }
+  const reg = await registrarSW(); if (!reg) return;
+  await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: b64(VAPID)});
+  const j = sub.toJSON();
+  await sb.from("zeca_push").upsert({perfil_id: eu.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, aparelho: navigator.userAgent.slice(0,120)}, {onConflict:"endpoint"});
+  $("aviso-push").hidden = true;
+  toast("Avisos ativados.");
+}
+async function conferirAvisos(){
+  const dispensou = (() => { try { return localStorage.getItem("zeca_push_depois") === "1"; } catch(e){ return false; } })();
+  if (ehIOS && !instalado){ $("aviso-ios").hidden = false; return; }
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted"){ ativarPush(); return; }
+  if (Notification.permission === "default" && !dispensou) $("aviso-push").hidden = false;
+}
+$("b-push").onclick = ativarPush;
+$("b-push-depois").onclick = () => { $("aviso-push").hidden = true; try { localStorage.setItem("zeca_push_depois","1"); } catch(e){} };
+$("b-ios-ok").onclick = () => $("aviso-ios").hidden = true;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instalarEvt = e; if (eu) $("aviso-instalar").hidden = false; });
+$("b-instalar").onclick = async () => { if (!instalarEvt) return; instalarEvt.prompt(); await instalarEvt.userChoice; instalarEvt = null; $("aviso-instalar").hidden = true; };
+navigator.serviceWorker && navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.abrir) abrir(e.data.abrir); });
+
+// ---------------- início
+async function iniciar(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session){ telaLogin(); return; }
+  eu = session.user;
+  await carregarPerfis();
+  if (!perfis[eu.id]){ await sb.auth.signOut(); telaLogin(); return; }
+  $("meu-av").outerHTML = avatar(perfis[eu.id],"av sm").replace('class="av sm"','class="av sm" id="meu-av"');
+  await carregarConversas();
+  desenharLista();
+  mostrar("t-lista");
+  assinar();
+  registrarSW();
+  conferirAvisos();
+  if (instalarEvt) $("aviso-instalar").hidden = false;
+  const m = location.hash.match(/c=([0-9a-f-]{36})/);
+  if (m) abrir(m[1]);
+}
+window.addEventListener("hashchange", () => { const m = location.hash.match(/c=([0-9a-f-]{36})/); if (m && eu && (!atual || atual.id !== m[1])) abrir(m[1]); });
+iniciar();
+</script>
+</body>
+</html>
