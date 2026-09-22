@@ -488,9 +488,7 @@ function desenharLista(){
       <span class="rt ${c.naoLidas?"un":""}"><span>${u?quando(u.criado_em):""}</span>${c.naoLidas?`<span class="n">${c.naoLidas}</span>`:"<span style='height:21px'></span>"}</span></button>`; }).join("");
     L.querySelectorAll(".row").forEach(b => b.onclick = () => abrir(b.dataset.c));
   }
-  const total = conversas.reduce((a,c) => a + c.naoLidas, 0);
-  try { if (navigator.setAppBadge) total ? navigator.setAppBadge(total) : navigator.clearAppBadge(); } catch(e){}
-  document.title = total ? `(${total}) Prosa` : "Prosa";
+  atualizarBadge();
 }
 $("q").addEventListener("input", desenharLista);
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filtro = b.dataset.f; document.querySelectorAll(".chips button").forEach(o => o.setAttribute("aria-pressed", o === b)); desenharLista(); });
@@ -594,7 +592,27 @@ function visor(u){ const v = document.createElement("div"); v.className = "visor
 function rolar(forcar){ const M = $("msgs"); if (forcar || M.scrollHeight - M.scrollTop - M.clientHeight < 180) M.scrollTop = M.scrollHeight; }
 $("msgs").addEventListener("scroll", () => { const M = $("msgs"); $("b-descer").hidden = M.scrollHeight - M.scrollTop - M.clientHeight < 300; });
 $("b-descer").onclick = () => rolar(true);
-async function marcarLido(){ if (!atual) return; await sb.from("zeca_membros").update({lido_ate: new Date().toISOString()}).eq("conversa_id", atual.id).eq("perfil_id", eu.id); }
+// 22/09: o número no ícone = mensagens não lidas de verdade; conversa lida some da barra de notificações
+function atualizarBadge(){
+  const total = conversas.reduce((a, c) => a + (c.naoLidas || 0), 0);
+  try { if (navigator.setAppBadge) total ? navigator.setAppBadge(total) : navigator.clearAppBadge(); } catch(e){}
+  document.title = total ? `(${total}) Prosa` : "Prosa";
+  conversas.filter(c => !c.naoLidas).forEach(c => limparAvisos(c.id));
+}
+async function limparAvisos(conversaId){
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg || !reg.getNotifications) return;
+    (await reg.getNotifications(conversaId ? {tag: conversaId} : undefined)).forEach(n => n.close());
+  } catch(e){}
+}
+async function marcarLido(){
+  if (!atual) return;
+  const c = conversas.find(x => x.id === atual.id); if (c) c.naoLidas = 0;
+  limparAvisos(atual.id); atualizarBadge();
+  await sb.from("zeca_membros").update({lido_ate: new Date().toISOString()}).eq("conversa_id", atual.id).eq("perfil_id", eu.id);
+}
 
 // ---------------- toque longo: responder, copiar, apagar
 function ligarToqueLongo(b, m){
@@ -1064,7 +1082,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22g";
+const VERSAO_APP = "2026-09-22h";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
