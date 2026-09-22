@@ -288,7 +288,7 @@ button{cursor:pointer}
     <h2>Prosa</h2>
     <p>Conversas da Cerrado Consultoria</p>
     <div id="lg-cel" style="display:grid;gap:14px">
-      <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(64) 98147-2081"></div>
+      <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 99999-9999"></div>
       <button class="btn" id="b-codigo" type="button">Receber código no WhatsApp</button>
       <div class="fld" id="fld-cod" hidden><label for="cod">Código de 6 números</label><input id="cod" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
       <button class="btn" id="b-cel-entrar" type="button" hidden>Entrar</button>
@@ -506,7 +506,7 @@ $("cod").addEventListener("input", () => { if ($("cod").value.replace(/\D/g, "")
 function adicionarPessoa(numero){
   folha(`<h3>Adicionar pessoa</h3>
     <div class="fld"><label for="ap-nome">Nome</label><input id="ap-nome" type="text" maxlength="60" placeholder="Nome da pessoa"></div>
-    <div class="fld"><label for="ap-cel">Celular com DDD</label><input id="ap-cel" type="tel" inputmode="tel" placeholder="(64) 99999-9999" value="${esc(numero || "")}"></div>
+    <div class="fld"><label for="ap-cel">Celular com DDD</label><input id="ap-cel" type="tel" inputmode="tel" placeholder="(00) 99999-9999" value="${esc(numero || "")}"></div>
     <button class="btn" type="button" id="ap-ok">Convidar pelo WhatsApp</button>
     <p class="dica">A pessoa recebe no WhatsApp o link para instalar a Prosa. Para entrar, ela usa esse mesmo número e recebe um código.</p>`);
   $("ap-ok").onclick = async () => {
@@ -1500,7 +1500,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22v";
+const VERSAO_APP = "2026-09-22w";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
