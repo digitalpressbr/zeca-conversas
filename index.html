@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Prosa">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest?v=22b">
 <link rel="icon" href="favicon-32.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=22b">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{
@@ -281,8 +281,8 @@ button{cursor:pointer}
       <button type="button" data-f="grupos" aria-pressed="false">Grupos</button>
     </div>
     <div class="aviso" id="aviso-push" hidden><b>Ativar os avisos de mensagem</b><span>Para o celular avisar cada mensagem nova, mesmo bloqueado.</span><div class="acoes"><button type="button" id="b-push">Ativar avisos</button><button type="button" class="sec" id="b-push-depois">Depois</button></div></div>
-    <div class="aviso" id="aviso-ios" hidden><b>No iPhone, instale o Zeca na tela inicial</b><span>Toque em <b>Compartilhar</b> (quadrado com seta, embaixo) e depois em <b>Adicionar à Tela de Início</b>. Abra pelo ícone do Zeca: aí dá para ativar os avisos.</span><div class="acoes"><button type="button" class="sec" id="b-ios-ok">Entendi</button></div></div>
-    <div class="aviso" id="aviso-instalar" hidden><b>Instalar o Zeca no celular</b><span>Fica com ícone na tela inicial e abre como aplicativo.</span><div class="acoes"><button type="button" id="b-instalar">Instalar</button></div></div>
+    <div class="aviso" id="aviso-ios" hidden><b>No iPhone, instale a Prosa na tela inicial</b><span>Toque em <b>Compartilhar</b> (quadrado com seta, embaixo) e depois em <b>Adicionar à Tela de Início</b>. Abra pelo ícone da Prosa: aí dá para ativar os avisos.</span><div class="acoes"><button type="button" class="sec" id="b-ios-ok">Entendi</button></div></div>
+    <div class="aviso" id="aviso-instalar" hidden><b>Instalar a Prosa no celular</b><span>Fica com ícone na tela inicial e abre como aplicativo.</span><div class="acoes"><button type="button" id="b-instalar">Instalar</button></div></div>
     <div class="aviso" id="aviso-samsung" hidden><b>Abra a Prosa pelo Google Chrome</b><span>Este celular abriu a Prosa no navegador da Samsung, que não abre a galeria de fotos. Pelo Chrome a galeria abre direto. Depois instale de novo pelo Chrome.</span><div class="acoes"><a class="btnlink" id="b-chrome" href="#">Abrir no Chrome</a></div></div>
     <div id="lista"></div>
   </div>
@@ -954,7 +954,7 @@ function meuPerfil(){
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22a";
+const VERSAO_APP = "2026-09-22b";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;

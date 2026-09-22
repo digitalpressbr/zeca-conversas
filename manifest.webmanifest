@@ -1,7 +1,7 @@
 {
-  "name": "Prosa — Cerrado Consultoria",
+  "name": "Prosa",
   "short_name": "Prosa",
-  "description": "Prosa: conversas da equipe da Cerrado com o Zeca",
+  "description": "Conversas da equipe da Cerrado Consultoria",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
