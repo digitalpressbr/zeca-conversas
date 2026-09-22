@@ -120,7 +120,7 @@ button{cursor:pointer}
 .m.jumbo .tk.lido,.m.fig .tk.lido{color:#9DE1FF}
 .m.fig{background:transparent!important;box-shadow:none;padding:0}
 .m.fig::before{display:none}
-.m.fig img{width:160px;height:160px;display:block}
+.m.fig img{width:190px;height:190px;max-width:52vw;max-height:52vw;display:block}
 .m.apg .tx{font-style:italic;color:var(--muted)}
 .cita{background:var(--quote);border-left:4px solid var(--accent2);border-radius:6px;padding:5px 8px;margin:0 0 5px;font-size:13.5px;cursor:pointer;min-width:0}
 .cita b{display:block;font-size:13px}
@@ -164,10 +164,10 @@ button{cursor:pointer}
 .emo button{border:0;background:transparent;font-size:28px;height:44px;border-radius:8px;line-height:1;padding:0}
 .emo button:active{background:var(--hover)}
 .emo button img{width:34px;height:34px;vertical-align:middle}
-.figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px}
+.figs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
 .figs button{border:0;background:transparent;border-radius:10px;padding:2px}
 .figs button:active{background:var(--hover)}
-.figs img{width:100%;aspect-ratio:1;display:block}
+.figs img{width:100%;aspect-ratio:1;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
 .folha{position:fixed;inset:0;background:rgba(11,20,26,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
 .folha .cx{background:var(--bg);width:100%;max-width:760px;border-radius:18px 18px 0 0;padding:16px 16px calc(var(--safe-b) + 16px);display:grid;gap:8px;max-height:90vh;overflow-y:auto}
 .folha h3{margin:4px 4px 6px;font-size:18px;font-weight:600}
@@ -335,6 +335,7 @@ const CORES_NOME = ["#1F7A4D","#B4452F","#6C4CB8","#2F6B9A","#9A5B12","#A63F79",
 const ZECA_FACES = ["zeca_01_feliz","zeca_02_comemorando","zeca_03_ok","zeca_04_apontando","zeca_05_preocupado","zeca_06_triste","zeca_07_chorando","zeca_08_duvida","zeca_09_aniversario","zeca_10_pensativo","zeca_11_joinha","zeca_12_boa_noite","zeca_13_bom_dia_cafe","zeca_14_aperto_mao","zeca_15_assinando_documento","zeca_16_acenando","zeca_17_obrigado","zeca_18_apontando_lado"];
 const PACOTES = [
   {id:"zeca", nome:"Zeca", arquivos: ["fig/zeca/zeca_01_preocupado.webp", "fig/zeca/zeca_02_comemorando.webp", "fig/zeca/zeca_03_ok.webp", "fig/zeca/zeca_04_apontando_cima.webp", "fig/zeca/zeca_05_triste.webp", "fig/zeca/zeca_06_chorando.webp", "fig/zeca/zeca_07_duvida.webp", "fig/zeca/zeca_08_pensativo.webp", "fig/zeca/zeca_09_aniversario.webp", "fig/zeca/zeca_10_feliz.webp", "fig/zeca/zeca_11_pensando.webp", "fig/zeca/zeca_12_bom_dia_cafe.webp", "fig/zeca/zeca_13_joinha.webp", "fig/zeca/zeca_14_apontando_lado.webp", "fig/zeca/zeca_15_obrigado.webp", "fig/zeca/zeca_16_assinando.webp", "fig/zeca/zeca_17_cumprimentando.webp", "fig/zeca/zeca_18_acenando.webp"]},
+  {id:"feminina", nome:"Zeca feminina", arquivos: ["fig/feminina/feminina_01.webp", "fig/feminina/feminina_02.webp", "fig/feminina/feminina_03.webp", "fig/feminina/feminina_04.webp", "fig/feminina/feminina_05.webp", "fig/feminina/feminina_06.webp", "fig/feminina/feminina_07.webp", "fig/feminina/feminina_08.webp", "fig/feminina/feminina_09.webp", "fig/feminina/feminina_10.webp", "fig/feminina/feminina_11.webp", "fig/feminina/feminina_12.webp", "fig/feminina/feminina_13.webp", "fig/feminina/feminina_14.webp", "fig/feminina/feminina_15.webp", "fig/feminina/feminina_16.webp", "fig/feminina/feminina_17.webp", "fig/feminina/feminina_18.webp", "fig/feminina/feminina_19.webp", "fig/feminina/feminina_20.webp", "fig/feminina/feminina_21.webp", "fig/feminina/feminina_22.webp", "fig/feminina/feminina_23.webp", "fig/feminina/feminina_24.webp", "fig/feminina/feminina_25.webp", "fig/feminina/feminina_26.webp", "fig/feminina/feminina_27.webp", "fig/feminina/feminina_28.webp", "fig/feminina/feminina_29.webp", "fig/feminina/feminina_30.webp", "fig/feminina/feminina_31.webp", "fig/feminina/feminina_32.webp", "fig/feminina/feminina_33.webp"]},
   {id:"emoji", nome:"Emojis", arquivos: ["fig/emoji/01_joinha.webp", "fig/emoji/02_negativo.webp", "fig/emoji/03_ok.webp", "fig/emoji/04_palmas.webp", "fig/emoji/05_maos_juntas.webp", "fig/emoji/06_aperto_de_mao.webp", "fig/emoji/07_aceno.webp", "fig/emoji/08_paz.webp", "fig/emoji/09_dedos_cruzados.webp", "fig/emoji/10_musculo.webp", "fig/emoji/11_maos_ao_alto.webp", "fig/emoji/12_apontando.webp", "fig/emoji/13_coracao_maos.webp", "fig/emoji/14_escrevendo.webp", "fig/emoji/15_rindo_chorando.webp", "fig/emoji/16_rolando_de_rir.webp", "fig/emoji/17_sorriso.webp", "fig/emoji/18_sorriso_suor.webp", "fig/emoji/19_piscando.webp", "fig/emoji/20_apaixonado.webp", "fig/emoji/21_beijo.webp", "fig/emoji/22_anjo.webp", "fig/emoji/23_oculos.webp", "fig/emoji/24_festa.webp", "fig/emoji/25_cauboi.webp", "fig/emoji/26_pensando.webp", "fig/emoji/27_revirando_olhos.webp", "fig/emoji/28_mao_na_boca.webp", "fig/emoji/29_careta.webp", "fig/emoji/30_suspiro.webp", "fig/emoji/31_sem_palavras.webp", "fig/emoji/32_de_cabeca_para_baixo.webp", "fig/emoji/33_espantado.webp", "fig/emoji/34_assustado.webp", "fig/emoji/35_cabeca_explodindo.webp", "fig/emoji/36_triste.webp", "fig/emoji/37_chorando.webp", "fig/emoji/38_bravo.webp", "fig/emoji/39_dormindo.webp", "fig/emoji/40_coracao.webp", "fig/emoji/41_fogo.webp", "fig/emoji/42_cem.webp", "fig/emoji/43_check.webp", "fig/emoji/44_olhos.webp"]}
 ];
 const EMOJIS = {
@@ -602,11 +603,29 @@ function ligarToqueLongo(b, m){
   b.addEventListener("touchstart", e => { const p = e.touches[0]; t = setTimeout(() => { navigator.vibrate && navigator.vibrate(20); menuMsg(m, p.clientX, p.clientY); }, 480); }, {passive:true});
   ["touchend","touchmove","touchcancel"].forEach(ev => b.addEventListener(ev, () => clearTimeout(t), {passive:true}));
 }
+function abrirMenu(ops, x, y){
+  fecharMenu();
+  const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
+  d.innerHTML = ops.map((o, i) => `<button type="button" data-i="${i}">${o[0]}</button>`).join("");
+  document.body.appendChild(d);
+  const r = d.getBoundingClientRect();
+  d.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 10)) + "px"; d.style.top = Math.max(8, Math.min(y, innerHeight - r.height - 10)) + "px";
+  d.querySelectorAll("button").forEach(bt => bt.onclick = ev => { ev.stopPropagation(); fecharMenu(); ops[bt.dataset.i][1](); });
+  setTimeout(() => document.addEventListener("click", fecharMenu, {once:true}), 10);
+}
+function menuFig(a, x, y){
+  abrirMenu([ehFavorita(a) ? ["Tirar das favoritas", () => marcarFavorita(a, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(a, true)],
+             ["Baixar figurinha", () => baixarFigurinha(a)]], x, y);
+}
 function menuMsg(m, x, y){
   fecharMenu();
   const ops = [];
   if (!m.apagada) ops.push(["Responder", () => responder(m)]);
   if (!m.apagada && m.tipo === "texto" && m.texto) ops.push(["Copiar", () => { navigator.clipboard && navigator.clipboard.writeText(m.texto); toast("Mensagem copiada"); }]);
+  if (!m.apagada && m.tipo === "figurinha" && m.texto){
+    ops.push(ehFavorita(m.texto) ? ["Tirar das favoritas", () => marcarFavorita(m.texto, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(m.texto, true)]);
+    ops.push(["Baixar figurinha", () => baixarFigurinha(m.texto)]);
+  }
   if (m.autor_id === eu.id && !m.apagada) ops.push(["Apagar para todos", () => apagar(m)]);
   if (!ops.length) return;
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -719,6 +738,20 @@ function recentes(){ try { return JSON.parse(localStorage.getItem("zeca_emoji_re
 function guardarRecente(e){ try { localStorage.setItem("zeca_emoji_rec", JSON.stringify([e, ...recentes().filter(x => x !== e)].slice(0, 24))); } catch(x){} }
 function inserirNoTexto(s){ const t = $("txt"), a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? t.value.length; t.value = t.value.slice(0, a) + s + t.value.slice(b); t.selectionStart = t.selectionEnd = a + s.length; ajustarTxt(); }
 function botaoEmoji(e){ return e.startsWith(":zeca") ? `<button type="button" data-e="${e}" aria-label="${e.slice(9,-1).replace(/_/g," ")}"><img src="emoji/zeca/${e.slice(1,-1)}.webp" alt=""></button>` : `<button type="button" data-e="${e}">${e}</button>`; }
+function favoritas(){ return (perfis[eu.id] && perfis[eu.id].figs_favoritas) || []; }
+function ehFavorita(a){ return favoritas().includes(a); }
+async function marcarFavorita(a, sim){
+  const nova = sim ? [a, ...favoritas().filter(x => x !== a)].slice(0, 60) : favoritas().filter(x => x !== a);
+  const { error } = await sb.from("zeca_perfis").update({figs_favoritas: nova}).eq("id", eu.id);
+  if (error){ toast("Não consegui salvar."); return; }
+  perfis[eu.id].figs_favoritas = nova;
+  toast(sim ? "Salva nas favoritas" : "Tirada das favoritas");
+  if (!$("painel").hidden && aba === "fig") desenharGrade();
+}
+function figsRecentes(){ try { return JSON.parse(localStorage.getItem("prosa_figs_rec") || "[]"); } catch(e){ return []; } }
+function guardarFigRecente(a){ try { localStorage.setItem("prosa_figs_rec", JSON.stringify([a, ...figsRecentes().filter(x => x !== a)].slice(0, 12))); } catch(e){} }
+function baixarFigurinha(a){ const l = document.createElement("a"); l.href = a; l.download = a.split("/").pop(); document.body.appendChild(l); l.click(); l.remove(); }
+function gradeFigs(titulo, arquivos){ return `<h4>${titulo}</h4><div class="figs">${arquivos.map(a => `<button type="button" data-f="${esc(a)}"><img src="${esc(a)}" alt="Figurinha" loading="lazy" draggable="false"></button>`).join("")}</div>`; }
 function desenharGrade(){
   const G = $("grade");
   if (aba === "emoji"){
@@ -729,11 +762,21 @@ function desenharGrade(){
   } else if (aba === "zeca"){
     G.innerHTML = `<h4>Carinhas do Zeca (entram no meio do texto)</h4><div class="emo">${ZECA_FACES.map(n => botaoEmoji(":" + n + ":")).join("")}</div>`;
   } else {
-    G.innerHTML = PACOTES.map(p => `<h4>${esc(p.nome)}</h4><div class="figs">${p.arquivos.map(a => `<button type="button" data-f="${a}"><img src="${a}" alt="Figurinha" loading="lazy"></button>`).join("")}</div>`).join("");
+    const fav = favoritas(), rec = figsRecentes();
+    G.innerHTML = (fav.length ? gradeFigs("⭐ Favoritas", fav) : `<p class="dica" style="margin:10px 6px">Segure o dedo numa figurinha para salvar nas favoritas.</p>`)
+      + (rec.length ? gradeFigs("Recentes", rec) : "")
+      + PACOTES.map(p => gradeFigs(esc(p.nome), p.arquivos)).join("");
   }
   G.scrollTop = 0;
   G.querySelectorAll("[data-e]").forEach(b => b.onclick = () => { inserirNoTexto(b.dataset.e); guardarRecente(b.dataset.e); });
-  G.querySelectorAll("[data-f]").forEach(b => b.onclick = () => inserir({tipo:"figurinha", texto:b.dataset.f}));
+  G.querySelectorAll("[data-f]").forEach(b => {
+    const a = b.dataset.f; let t = null, longo = false;
+    b.onclick = () => { if (longo){ longo = false; return; } guardarFigRecente(a); inserir({tipo:"figurinha", texto:a}); };
+    const menu = (x, y) => { longo = true; menuFig(a, x, y); };
+    b.addEventListener("contextmenu", e => { e.preventDefault(); menu(e.clientX, e.clientY); });
+    b.addEventListener("touchstart", e => { const p = e.touches[0]; t = setTimeout(() => { navigator.vibrate && navigator.vibrate(20); menu(p.clientX, p.clientY); }, 480); }, {passive:true});
+    ["touchend","touchmove","touchcancel"].forEach(ev => b.addEventListener(ev, () => clearTimeout(t), {passive:true}));
+  });
 }
 function abrirPainel(){ $("painel").hidden = false; $("txt").blur(); $("b-emoji").innerHTML = '<svg><use href="#i-teclado"/></svg>'; desenharGrade(); setTimeout(() => rolar(true), 50); }
 function fecharPainel(){ $("painel").hidden = true; $("b-emoji").innerHTML = '<svg><use href="#i-emoji"/></svg>'; }
@@ -973,7 +1016,7 @@ function meuPerfil(){
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22e";
+const VERSAO_APP = "2026-09-22f";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
