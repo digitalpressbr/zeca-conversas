@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Prosa">
-<link rel="manifest" href="manifest.webmanifest?v=22c">
-<link rel="icon" href="favicon-32.png?v=22c">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=22c">
+<link rel="manifest" href="manifest.webmanifest?v=22e">
+<link rel="icon" href="favicon-32.png?v=22e">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=22e">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{
@@ -973,7 +973,7 @@ function meuPerfil(){
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22d";
+const VERSAO_APP = "2026-09-22e";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
