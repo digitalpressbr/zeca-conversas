@@ -120,7 +120,7 @@ button{cursor:pointer}
 .m.jumbo .tk.lido,.m.fig .tk.lido{color:#9DE1FF}
 .m.fig{background:transparent!important;box-shadow:none;padding:0}
 .m.fig::before{display:none}
-.m.fig img{width:190px;height:190px;max-width:52vw;max-height:52vw;display:block}
+.m.fig img{width:140px;height:140px;max-width:38vw;max-height:38vw;display:block}
 .m.apg .tx{font-style:italic;color:var(--muted)}
 .cita{background:var(--quote);border-left:4px solid var(--accent2);border-radius:6px;padding:5px 8px;margin:0 0 5px;font-size:13.5px;cursor:pointer;min-width:0}
 .cita b{display:block;font-size:13px}
@@ -177,6 +177,8 @@ button{cursor:pointer}
 .pacotes button{flex:none;width:44px;height:44px;border:0;border-radius:10px;background:transparent;display:grid;place-items:center;font-size:22px;padding:4px}
 .pacotes button[aria-pressed="true"]{background:var(--chip)}
 .pacotes img{width:34px;height:34px;object-fit:contain}
+.add-fig{position:relative;display:grid;place-items:center;align-content:center;aspect-ratio:1;border:2px dashed var(--line);border-radius:12px;color:var(--accent2);cursor:pointer}
+.add-fig span{font-size:30px;line-height:1}.add-fig small{font-size:12px}
 .figs button{border:0;background:transparent;border-radius:10px;padding:2px}
 .figs button:active{background:var(--hover)}
 .figs img{width:100%;aspect-ratio:1;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
@@ -358,8 +360,8 @@ const EQUIPE = [
 const CORES_NOME = ["#1F7A4D","#B4452F","#6C4CB8","#2F6B9A","#9A5B12","#A63F79","#2A7F87","#7A6A12"];
 const ZECA_FACES = ["zeca_01_feliz","zeca_02_comemorando","zeca_03_ok","zeca_04_apontando","zeca_05_preocupado","zeca_06_triste","zeca_07_chorando","zeca_08_duvida","zeca_09_aniversario","zeca_10_pensativo","zeca_11_joinha","zeca_12_boa_noite","zeca_13_bom_dia_cafe","zeca_14_aperto_mao","zeca_15_assinando_documento","zeca_16_acenando","zeca_17_obrigado","zeca_18_apontando_lado"];
 const PACOTES = [
-  {id:"zeca", nome:"Zeca", icone:"fig/zeca/_icone.png", arquivos: ["fig/zeca/zeca_01_preocupado.webp", "fig/zeca/zeca_02_comemorando.webp", "fig/zeca/zeca_03_ok.webp", "fig/zeca/zeca_04_apontando_cima.webp", "fig/zeca/zeca_05_triste.webp", "fig/zeca/zeca_06_chorando.webp", "fig/zeca/zeca_07_duvida.webp", "fig/zeca/zeca_08_pensativo.webp", "fig/zeca/zeca_09_aniversario.webp", "fig/zeca/zeca_10_feliz.webp", "fig/zeca/zeca_11_pensando.webp", "fig/zeca/zeca_12_bom_dia_cafe.webp", "fig/zeca/zeca_13_joinha.webp", "fig/zeca/zeca_14_apontando_lado.webp", "fig/zeca/zeca_15_obrigado.webp", "fig/zeca/zeca_16_assinando.webp", "fig/zeca/zeca_17_cumprimentando.webp", "fig/zeca/zeca_18_acenando.webp"]},
-  {id:"feminina", nome:"Zeza", icone:"fig/feminina/_icone.png", arquivos: ["fig/feminina/feminina_01.webp", "fig/feminina/feminina_02.webp", "fig/feminina/feminina_03.webp", "fig/feminina/feminina_04.webp", "fig/feminina/feminina_05.webp", "fig/feminina/feminina_06.webp", "fig/feminina/feminina_07.webp", "fig/feminina/feminina_08.webp", "fig/feminina/feminina_09.webp", "fig/feminina/feminina_10.webp", "fig/feminina/feminina_11.webp", "fig/feminina/feminina_12.webp", "fig/feminina/feminina_13.webp", "fig/feminina/feminina_14.webp", "fig/feminina/feminina_15.webp", "fig/feminina/feminina_16.webp", "fig/feminina/feminina_17.webp", "fig/feminina/feminina_18.webp", "fig/feminina/feminina_19.webp", "fig/feminina/feminina_20.webp", "fig/feminina/feminina_21.webp", "fig/feminina/feminina_22.webp", "fig/feminina/feminina_23.webp", "fig/feminina/feminina_24.webp", "fig/feminina/feminina_25.webp", "fig/feminina/feminina_26.webp", "fig/feminina/feminina_27.webp", "fig/feminina/feminina_28.webp", "fig/feminina/feminina_29.webp", "fig/feminina/feminina_30.webp", "fig/feminina/feminina_31.webp", "fig/feminina/feminina_32.webp", "fig/feminina/feminina_33.webp"]},
+  {id:"zeca", nome:"Zeca", icone:"fig/zeca/capa.png", arquivos: ["fig/zeca/zeca_01_preocupado.webp", "fig/zeca/zeca_02_comemorando.webp", "fig/zeca/zeca_03_ok.webp", "fig/zeca/zeca_04_apontando_cima.webp", "fig/zeca/zeca_05_triste.webp", "fig/zeca/zeca_06_chorando.webp", "fig/zeca/zeca_07_duvida.webp", "fig/zeca/zeca_08_pensativo.webp", "fig/zeca/zeca_09_aniversario.webp", "fig/zeca/zeca_10_feliz.webp", "fig/zeca/zeca_11_pensando.webp", "fig/zeca/zeca_12_bom_dia_cafe.webp", "fig/zeca/zeca_13_joinha.webp", "fig/zeca/zeca_14_apontando_lado.webp", "fig/zeca/zeca_15_obrigado.webp", "fig/zeca/zeca_16_assinando.webp", "fig/zeca/zeca_17_cumprimentando.webp", "fig/zeca/zeca_18_acenando.webp"]},
+  {id:"feminina", nome:"Zeza", icone:"fig/feminina/capa.png", arquivos: ["fig/feminina/feminina_01.webp", "fig/feminina/feminina_02.webp", "fig/feminina/feminina_03.webp", "fig/feminina/feminina_04.webp", "fig/feminina/feminina_05.webp", "fig/feminina/feminina_06.webp", "fig/feminina/feminina_07.webp", "fig/feminina/feminina_08.webp", "fig/feminina/feminina_09.webp", "fig/feminina/feminina_10.webp", "fig/feminina/feminina_11.webp", "fig/feminina/feminina_12.webp", "fig/feminina/feminina_13.webp", "fig/feminina/feminina_14.webp", "fig/feminina/feminina_15.webp", "fig/feminina/feminina_16.webp", "fig/feminina/feminina_17.webp", "fig/feminina/feminina_18.webp", "fig/feminina/feminina_19.webp", "fig/feminina/feminina_20.webp", "fig/feminina/feminina_21.webp", "fig/feminina/feminina_22.webp", "fig/feminina/feminina_23.webp", "fig/feminina/feminina_24.webp", "fig/feminina/feminina_25.webp", "fig/feminina/feminina_26.webp", "fig/feminina/feminina_27.webp", "fig/feminina/feminina_28.webp", "fig/feminina/feminina_29.webp", "fig/feminina/feminina_30.webp", "fig/feminina/feminina_31.webp", "fig/feminina/feminina_32.webp", "fig/feminina/feminina_33.webp"]},
   {id:"emoji", nome:"Emojis", icone:"fig/emoji/01_joinha.webp", arquivos: ["fig/emoji/01_joinha.webp", "fig/emoji/02_negativo.webp", "fig/emoji/03_ok.webp", "fig/emoji/04_palmas.webp", "fig/emoji/05_maos_juntas.webp", "fig/emoji/06_aperto_de_mao.webp", "fig/emoji/07_aceno.webp", "fig/emoji/08_paz.webp", "fig/emoji/09_dedos_cruzados.webp", "fig/emoji/10_musculo.webp", "fig/emoji/11_maos_ao_alto.webp", "fig/emoji/12_apontando.webp", "fig/emoji/13_coracao_maos.webp", "fig/emoji/14_escrevendo.webp", "fig/emoji/15_rindo_chorando.webp", "fig/emoji/16_rolando_de_rir.webp", "fig/emoji/17_sorriso.webp", "fig/emoji/18_sorriso_suor.webp", "fig/emoji/19_piscando.webp", "fig/emoji/20_apaixonado.webp", "fig/emoji/21_beijo.webp", "fig/emoji/22_anjo.webp", "fig/emoji/23_oculos.webp", "fig/emoji/24_festa.webp", "fig/emoji/25_cauboi.webp", "fig/emoji/26_pensando.webp", "fig/emoji/27_revirando_olhos.webp", "fig/emoji/28_mao_na_boca.webp", "fig/emoji/29_careta.webp", "fig/emoji/30_suspiro.webp", "fig/emoji/31_sem_palavras.webp", "fig/emoji/32_de_cabeca_para_baixo.webp", "fig/emoji/33_espantado.webp", "fig/emoji/34_assustado.webp", "fig/emoji/35_cabeca_explodindo.webp", "fig/emoji/36_triste.webp", "fig/emoji/37_chorando.webp", "fig/emoji/38_bravo.webp", "fig/emoji/39_dormindo.webp", "fig/emoji/40_coracao.webp", "fig/emoji/41_fogo.webp", "fig/emoji/42_cem.webp", "fig/emoji/43_check.webp", "fig/emoji/44_olhos.webp"]}
 ];
 const EMOJIS = {
@@ -723,7 +725,8 @@ function abrirMenu(ops, x, y){
   setTimeout(() => document.addEventListener("click", fecharMenu, {once:true}), 10);
 }
 function menuFig(a, x, y){
-  abrirMenu([ehFavorita(a) ? ["Tirar das favoritas", () => marcarFavorita(a, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(a, true)],
+  const minhas = (perfis[eu.id] && perfis[eu.id].figs_minhas) || [];
+  abrirMenu([...(minhas.includes(a) ? [["Tirar das minhas figurinhas", () => salvarMinhas(minhas.filter(x => x !== a))]] : []),ehFavorita(a) ? ["Tirar das favoritas", () => marcarFavorita(a, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(a, true)],
              ["Baixar figurinha", () => baixarFigurinha(a)]], x, y);
 }
 async function copiarTexto(t){
@@ -912,6 +915,56 @@ async function marcarFavorita(a, sim){
   toast(sim ? "Salva nas favoritas" : "Tirada das favoritas");
   if (!$("painel").hidden && aba === "fig") desenharGrade();
 }
+async function salvarMinhas(lista){
+  const { error } = await sb.from("zeca_perfis").update({figs_minhas: lista}).eq("id", eu.id);
+  if (error){ toast("Não consegui salvar."); return false; }
+  perfis[eu.id].figs_minhas = lista; if (!$("painel").hidden && aba === "fig") desenharGrade(); return true;
+}
+// deixa a figurinha no padrão do WhatsApp: 512 × 512, fundo transparente, desenho centralizado
+async function padronizarFig(blob){
+  const bmp = await createImageBitmap(blob);
+  const T = 512, cv = document.createElement("canvas"); cv.width = cv.height = T;
+  const k = Math.min(T / bmp.width, T / bmp.height), w = bmp.width * k, h = bmp.height * k;
+  cv.getContext("2d").drawImage(bmp, (T - w) / 2, (T - h) / 2, w, h);
+  let out = await new Promise(ok => cv.toBlob(ok, "image/webp", 0.9));
+  if (!out || out.type !== "image/webp") out = await new Promise(ok => cv.toBlob(ok, "image/png"));   // iPhone não gera webp
+  return out;
+}
+async function importarFigurinhas(arquivos){
+  if (!arquivos.length) return;
+  toast("Adicionando figurinhas…");
+  let imagens = [];
+  for (const f of arquivos){
+    if (/\.zip$/i.test(f.name) || f.type.includes("zip") || !f.type){
+      try {
+        if (!window.JSZip) await new Promise((ok, erro) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload = ok; sc.onerror = erro; document.head.appendChild(sc); });
+        const z = await JSZip.loadAsync(f);
+        for (const n of Object.keys(z.files)){
+          if (!/\.(webp|png)$/i.test(n) || z.files[n].dir) continue;
+          const b = await z.files[n].async("blob");
+          const bmp = await createImageBitmap(b); if (bmp.width < 200) continue;        // pula a capa pequena do pacote
+          imagens.push(b);
+        }
+        continue;
+      } catch(e){ if (/\.zip$/i.test(f.name)){ toast("Não consegui abrir esse pacote."); continue; } }
+    }
+    if (f.type.startsWith("image/")) imagens.push(f);
+  }
+  if (!imagens.length){ toast("Nenhuma figurinha encontrada."); return; }
+  const novas = [];
+  for (const b of imagens.slice(0, 60)){
+    try {
+      const out = await padronizarFig(b);
+      const ext = out.type === "image/webp" ? "webp" : "png";
+      const path = `figs/${eu.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+      const up = await sb.storage.from("zeca-fotos").upload(path, out, {contentType: out.type});
+      if (!up.error) novas.push(sb.storage.from("zeca-fotos").getPublicUrl(path).data.publicUrl);
+    } catch(e){}
+  }
+  const atuais = (perfis[eu.id] && perfis[eu.id].figs_minhas) || [];
+  if (novas.length && await salvarMinhas([...novas, ...atuais].slice(0, 300))){ pacoteAtual = "minhas"; desenharGrade(); toast(`${novas.length} figurinha(s) adicionada(s).`); }
+  else if (!novas.length) toast("Não consegui adicionar.");
+}
 function figsRecentes(){ try { return JSON.parse(localStorage.getItem("prosa_figs_rec") || "[]"); } catch(e){ return []; } }
 function guardarFigRecente(a){ try { localStorage.setItem("prosa_figs_rec", JSON.stringify([a, ...figsRecentes().filter(x => x !== a)].slice(0, 12))); } catch(e){} }
 function baixarFigurinha(a){ const l = document.createElement("a"); l.href = a; l.download = a.split("/").pop(); document.body.appendChild(l); l.click(); l.remove(); }
@@ -925,13 +978,18 @@ function desenharGrade(){
     G.innerHTML = h;
   } else {
     const fav = favoritas(), rec = figsRecentes();
-    const abas = [{id:"rec", nome:"Recentes", ic:"🕘", arquivos: rec}, {id:"fav", nome:"Favoritas", ic:"⭐", arquivos: fav}]
+    const minhas = (perfis[eu.id] && perfis[eu.id].figs_minhas) || [];
+    const abas = [{id:"rec", nome:"Recentes", ic:"🕘", arquivos: rec}, {id:"fav", nome:"Favoritas", ic:"⭐", arquivos: fav},
+                  {id:"minhas", nome:"Minhas figurinhas", ic:"🗂️", arquivos: minhas}]
       .concat(PACOTES.map(p => ({id: p.id, nome: p.nome, icone: p.icone, arquivos: p.arquivos})));
     if (!pacoteAtual || !abas.some(a => a.id === pacoteAtual)) pacoteAtual = rec.length ? "rec" : "zeca";
     const sel = abas.find(a => a.id === pacoteAtual);
     const vazio = sel.id === "fav" ? "Segure o dedo numa figurinha e toque em “Salvar nas favoritas”." : "As figurinhas que você mandar aparecem aqui.";
     G.innerHTML = `<div class="pacotes">${abas.map(a => `<button type="button" data-pac="${a.id}" aria-pressed="${a.id === pacoteAtual}" title="${esc(a.nome)}">${a.icone ? `<img src="${esc(a.icone)}" alt="">` : `<span>${a.ic}</span>`}</button>`).join("")}</div>`
-      + (sel.arquivos.length ? gradeFigs(esc(sel.nome), sel.arquivos) : `<h4>${esc(sel.nome)}</h4><p class="dica" style="margin:4px 6px">${vazio}</p>`);
+      + (sel.id === "minhas" ? `<h4>Minhas figurinhas</h4><div class="figs"><label class="add-fig" title="Adicionar figurinha"><span>＋</span><small>Adicionar</small><input type="file" class="alvo" accept="image/*,.webp,.zip,application/zip" multiple></label>${minhas.map(a => `<button type="button" data-f="${esc(a)}"><img src="${esc(a)}" alt="Figurinha" loading="lazy" draggable="false"></button>`).join("")}</div>
+          <p class="dica" style="margin:6px">Aceita figurinha solta (webp ou png) e o pacote exportado do WhatsApp (.zip). Segure uma figurinha sua para tirar.</p>`
+        : sel.arquivos.length ? gradeFigs(esc(sel.nome), sel.arquivos) : `<h4>${esc(sel.nome)}</h4><p class="dica" style="margin:4px 6px">${vazio}</p>`);
+    const inAdd = G.querySelector(".add-fig input"); if (inAdd) inAdd.onchange = () => importarFigurinhas([...inAdd.files]);
     G.querySelectorAll("[data-pac]").forEach(b => b.onclick = () => { pacoteAtual = b.dataset.pac; desenharGrade(); });
   }
   G.scrollTop = 0;
@@ -1237,7 +1295,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22n";
+const VERSAO_APP = "2026-09-22o";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
