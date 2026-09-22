@@ -790,6 +790,7 @@ function assinar(){
   canal = sb.channel("zeca-" + eu.id)
     .on("postgres_changes", {event:"INSERT", schema:"public", table:"zeca_mensagens"}, p => {
       const m = p.new;
+      if (m.autor_id !== eu.id && m.tipo !== "sistema") tocarAviso();
       if (atual && m.conversa_id === atual.id && !$("t-chat").hidden){
         if (msgsAtual.some(x => x.id === m.id)) return;
         const M = $("msgs"), dg = M.querySelector(".digitando");
@@ -893,7 +894,7 @@ function infoConversa(){
 }
 $("c-tit").onclick = infoConversa; $("c-av").onclick = infoConversa;
 $("b-cmenu").onclick = e => menuGeral(e, [["Dados da conversa", infoConversa], ["Voltar para as conversas", () => $("b-voltar").click()]]);
-$("b-menu").onclick = e => menuGeral(e, [["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", ativarPush], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small></div>`)], ["Sair", sair]]);
+$("b-menu").onclick = e => menuGeral(e, [["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small></div>`)], ["Sair", sair]]);
 function menuGeral(e, ops){
   e.stopPropagation(); fecharMenu();
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -1013,10 +1014,57 @@ function meuPerfil(){
   };
 }
 
+// ---------------- som e vibração do aviso (22/09)
+const SONS = [
+  {id:"nenhum", nome:"Sem som"},
+  {id:"toque_sininho", nome:"Sininho"},
+  {id:"toque_gota", nome:"Gota"},
+  {id:"toque_viola", nome:"Viola"},
+  {id:"zeca_chegou", nome:"Zeca: “Ô, chegou mensagem!”"},
+  {id:"zeca_escuta", nome:"Zeca: “Ei, escuta aqui! Mensagem nova.”"},
+  {id:"zeca_prosa", nome:"Zeca: “Opa! Tem prosa nova pra você, sô.”"}
+];
+const VIBRAS = [
+  {id:"nenhuma", nome:"Sem vibração", p:[]},
+  {id:"curtas", nome:"3 vibrações curtas", p:[120, 90, 120, 90, 120]},
+  {id:"longas", nome:"2 vibrações longas", p:[450, 220, 450]}
+];
+function prefsAviso(){ try { return Object.assign({som:"toque_sininho", vibra:"curtas"}, JSON.parse(localStorage.getItem("prosa_avisos") || "{}")); } catch(e){ return {som:"toque_sininho", vibra:"curtas"}; } }
+async function gravarPrefsAviso(p){
+  try { localStorage.setItem("prosa_avisos", JSON.stringify(p)); } catch(e){}
+  try { const c = await caches.open("prosa-prefs"); await c.put("prefs.json", new Response(JSON.stringify(Object.assign({}, p, {padrao: (VIBRAS.find(v => v.id === p.vibra) || {}).p || []})), {headers:{"Content-Type":"application/json"}})); } catch(e){}
+}
+let somAtual = null, ultimoAviso = 0;
+function tocarSom(id){
+  if (!id || id === "nenhum") return;
+  try { if (somAtual) somAtual.pause(); somAtual = new Audio("som/" + id + ".mp3"); somAtual.play().catch(() => {}); } catch(e){}
+}
+function vibrar(id){ const v = VIBRAS.find(x => x.id === id); if (v && v.p.length && navigator.vibrate) navigator.vibrate(v.p); }
+function tocarAviso(){
+  const agora = Date.now(); if (agora - ultimoAviso < 1500) return; ultimoAviso = agora;
+  const p = prefsAviso(); tocarSom(p.som); vibrar(p.vibra);
+}
+function abrirAvisos(){
+  const p = prefsAviso();
+  const ativos = ("Notification" in window) && Notification.permission === "granted";
+  folha(`<h3>Avisos de mensagem</h3>
+    <button class="btn ${ativos ? "sec" : ""}" type="button" id="av-push">${ativos ? "Avisos no celular: ligados" : "Ligar avisos no celular"}</button>
+    <div class="sec">Som quando chega mensagem</div>
+    ${SONS.map(o => `<label class="pick" style="grid-template-columns:28px 1fr 40px"><input type="radio" name="av-som" value="${o.id}" ${p.som === o.id ? "checked" : ""}><span>${esc(o.nome)}</span>${o.id !== "nenhum" ? `<button type="button" class="ib" data-ouvir="${o.id}" aria-label="Ouvir" style="color:var(--accent2)"><svg width="22" height="22"><use href="#i-play"/></svg></button>` : "<span></span>"}</label>`).join("")}
+    <div class="sec">Vibração</div>
+    ${VIBRAS.map(o => `<label class="pick" style="grid-template-columns:28px 1fr 40px"><input type="radio" name="av-vib" value="${o.id}" ${p.vibra === o.id ? "checked" : ""}><span>${esc(o.nome)}</span><span></span></label>`).join("")}
+    <p class="dica">Com a Prosa aberta, o som e a vibração escolhidos tocam a cada mensagem nova. Com o celular bloqueado ou a Prosa fechada, quem toca é o aviso do próprio celular; o som dele se troca em Configurações do celular, Notificações, Chrome (ou Prosa).</p>`);
+  $("av-push").onclick = async () => { await ativarPush(); abrirAvisos(); };
+  $("folha-cx").querySelectorAll("[data-ouvir]").forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); tocarSom(b.dataset.ouvir); });
+  $("folha-cx").querySelectorAll('input[name="av-som"]').forEach(i => i.onchange = () => { const q = prefsAviso(); q.som = i.value; gravarPrefsAviso(q); tocarSom(i.value); });
+  $("folha-cx").querySelectorAll('input[name="av-vib"]').forEach(i => i.onchange = () => { const q = prefsAviso(); q.vibra = i.value; gravarPrefsAviso(q); vibrar(i.value); });
+}
+gravarPrefsAviso(prefsAviso());
+
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22f";
+const VERSAO_APP = "2026-09-22g";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
