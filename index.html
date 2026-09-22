@@ -620,7 +620,7 @@ async function abrir(id){
   $("c-nome").textContent = atual.titulo;
   $("c-sub").textContent = atual.tipo === "grupo"
     ? atual.membros.map(m => m === eu.id ? "Você" : (perfis[m]||{}).nome).filter(Boolean).concat(atual.zeca ? ["Zeca"] : []).join(", ")
-    : (atual.outro ? "toque para ver o contato" : "assistente da Cerrado");
+    : (atual.outro ? (atual.outro.recado || "toque para ver o contato") : "assistente da Cerrado");
   mostrar("t-chat"); cancelarResposta();
   history.replaceState(null, "", "#c=" + id);
   const meuLido = (atual.mems||[]).find(m => m.perfil_id === eu.id);
@@ -1392,17 +1392,41 @@ function recortar(arquivo, origem){
 }
 
 // ---------------- meu perfil (foto com câmera, nome e recado)
+// ---------------- meu perfil: foto, nome (editável) e status com bolinha (🟢 🟡 🔴)
+const STATUS = ["🟢 Disponível", "🟡 Ocupado", "🔴 Indisponível"];
 function meuPerfil(){
   const p = perfis[eu.id];
   folha(`<div class="perfil"><button type="button" class="fotoedit" id="p-foto" aria-label="Trocar foto">${avatar(p,"av xl")}<span class="cam"><svg width="22" height="22"><use href="#i-camera"/></svg></span></button></div>
-    <div class="campo"><small>Nome</small><b>${esc(p.nome)}</b></div>
-    <button type="button" class="campo" id="p-recado"><small>Recado</small><b>${esc(p.recado || "Disponível")}</b><svg width="20" height="20" class="lapis"><use href="#i-lapis"/></svg></button>`);
+    <button type="button" class="campo" id="p-nome"><small>Nome</small><b>${esc(p.nome)}</b><svg width="20" height="20" class="lapis"><use href="#i-lapis"/></svg></button>
+    <button type="button" class="campo" id="p-recado"><small>Status</small><b>${esc(p.recado || STATUS[0])}</b><svg width="20" height="20" class="lapis"><use href="#i-lapis"/></svg></button>`);
   const salvarFoto = async url => { await sb.from("zeca_perfis").update({foto_url:url}).eq("id", eu.id); perfis[eu.id].foto_url = url; meuPerfil(); atualizarLista(); };
   $("p-foto").onclick = () => escolherFoto(salvarFoto, "perfis/" + eu.id, !!p.foto_url);
-  $("p-recado").onclick = async () => {
-    const r = prompt("Recado", p.recado || "Disponível"); if (r === null) return;
-    const v = r.trim().slice(0, 140) || "Disponível";
-    await sb.from("zeca_perfis").update({recado:v}).eq("id", eu.id); perfis[eu.id].recado = v; meuPerfil();
+  $("p-nome").onclick = () => {
+    folha(`<h3>Seu nome</h3>
+      <div class="fld"><label for="pn">Nome que aparece para os outros</label><input id="pn" type="text" maxlength="40" value="${esc(p.nome)}"></div>
+      <button class="btn" type="button" id="pn-ok">Salvar</button><button class="btn sec" type="button" id="pn-x">Cancelar</button>`);
+    setTimeout(() => $("pn").focus(), 100);
+    $("pn-x").onclick = meuPerfil;
+    $("pn-ok").onclick = async () => {
+      const v = $("pn").value.trim().replace(/\s+/g, " ");
+      if (v.length < 2){ toast("Nome muito curto."); return; }
+      const { error } = await sb.from("zeca_perfis").update({nome: v}).eq("id", eu.id);
+      if (error){ toast(/reservado|existe/.test(error.message) ? error.message : "Não consegui salvar o nome."); return; }
+      perfis[eu.id].nome = v; toast("Nome salvo."); meuPerfil(); atualizarLista();
+    };
+  };
+  $("p-recado").onclick = () => {
+    const atualSt = p.recado || STATUS[0];
+    folha(`<h3>Status</h3>
+      ${STATUS.map(st => `<button type="button" class="op" data-st="${esc(st)}"><span style="font-size:22px;width:30px;text-align:center">${st.split(" ")[0]}</span><span><b>${esc(st.slice(st.indexOf(" ") + 1))}</b></span>${atualSt === st ? '<span style="margin-left:auto;color:var(--accent2);font-weight:700">✓</span>' : ""}</button>`).join("")}
+      <div class="sec">Ou escreva o seu</div>
+      <div class="fld"><input id="st-livre" type="text" maxlength="140" placeholder="Ex.: Em reunião até 16h" value="${STATUS.includes(atualSt) ? "" : esc(atualSt)}"></div>
+      <button class="btn" type="button" id="st-ok">Salvar</button>`);
+    const salvar = async v => {
+      await sb.from("zeca_perfis").update({recado: v}).eq("id", eu.id); perfis[eu.id].recado = v; toast("Status salvo."); meuPerfil();
+    };
+    $("folha-cx").querySelectorAll("[data-st]").forEach(b => b.onclick = () => salvar(b.dataset.st));
+    $("st-ok").onclick = () => { const v = $("st-livre").value.trim().slice(0, 140); if (v) salvar(v); else toast("Escreva o status ou escolha um acima."); };
   };
 }
 
@@ -1457,7 +1481,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22s";
+const VERSAO_APP = "2026-09-22u";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
