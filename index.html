@@ -139,6 +139,8 @@ button{cursor:pointer}
 .aud .bar{flex:1;height:4px;border-radius:2px;background:rgba(0,0,0,.15);position:relative}
 .aud .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent2);border-radius:2px;width:0}
 .aud small{font-size:12px;color:var(--muted);min-width:34px}
+.aud .vel{font-size:12px;font-weight:700;color:#fff;background:#8696A0;border-radius:11px;padding:2px 7px;cursor:pointer;flex:none;user-select:none}
+.aud .vel.rapido{background:var(--accent2)}
 .aud .fo{width:40px;height:40px;border-radius:50%;background-size:cover;background-position:center;flex:none;background-color:#F7F5EE}
 .digitando{align-self:flex-start;font-size:13px;color:var(--muted);background:var(--in);border-radius:8px;padding:6px 10px;margin-top:6px;box-shadow:0 1px .5px rgba(0,0,0,.13)}
 .descer{position:absolute;right:14px;bottom:88px;width:40px;height:40px;border-radius:50%;background:var(--bg);color:var(--muted);border:0;box-shadow:0 1px 4px rgba(0,0,0,.25);display:grid;place-items:center;z-index:5}
@@ -152,6 +154,9 @@ button{cursor:pointer}
 .pilula textarea{flex:1;resize:none;max-height:130px;min-height:44px;border:0;background:transparent;padding:12px 4px;font-size:16.5px;line-height:1.3;outline:none;min-width:0}
 .redondo{width:48px;height:48px;border-radius:50%;background:var(--accent2);color:#fff;border:0;display:grid;place-items:center;flex:none}
 .gravando{flex:1;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:24px;padding:0 8px 0 6px;min-height:48px;color:var(--danger);font-weight:600}
+#g-trava{position:absolute;right:10px;bottom:calc(var(--safe-b) + 72px);width:44px;padding:10px 0;border-radius:22px;background:var(--bg);box-shadow:0 1px 6px rgba(0,0,0,.25);display:grid;justify-items:center;gap:4px;color:var(--muted);z-index:6}
+.redondo.grav{transform:scale(1.35);transition:transform .15s}
+.baixo{position:relative}
 .gravando .pt{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pisca 1s infinite}
 @keyframes pisca{50%{opacity:.2}}
 .painel{flex:none;height:300px;background:var(--panel);display:flex;flex-direction:column;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
@@ -240,6 +245,7 @@ button{cursor:pointer}
   <symbol id="i-galeria" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
   <symbol id="i-lapis" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 2.5h8l4 4V21.5H6z"/><path d="M14 2.5v4h4M9 12h6M9 16h6"/></g></symbol>
+  <symbol id="i-cadeado" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g></symbol>
   <symbol id="i-t2" viewBox="0 0 16 11"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M.8 5.8 4.3 9.3 10.8 1.8M7.2 8.4l.9.9 6.5-7.5"/></symbol>
 </svg>
 
@@ -321,7 +327,8 @@ button{cursor:pointer}
         <button class="ib" type="button" id="b-anexo" aria-label="Anexar arquivo"><svg><use href="#i-clipe"/></svg></button>
         <button class="ib" type="button" id="b-cam" aria-label="Foto"><svg><use href="#i-camera"/></svg></button>
       </div>
-      <div class="gravando" id="gravando" hidden><button class="ib" type="button" id="g-cancel" aria-label="Descartar áudio" style="color:var(--muted)"><svg><use href="#i-lixo"/></svg></button><span class="pt"></span><span id="g-tempo">0:00</span></div>
+      <div class="gravando" id="gravando" hidden><button class="ib" type="button" id="g-cancel" aria-label="Descartar áudio" style="color:var(--muted)"><svg><use href="#i-lixo"/></svg></button><span class="pt"></span><span id="g-tempo">0:00</span><span id="g-dica" style="margin-left:auto;margin-right:8px;color:var(--muted);font-weight:500;font-size:14px;transition:transform .05s">‹ deslize para cancelar</span></div>
+      <div id="g-trava" hidden aria-hidden="true"><svg width="20" height="20"><use href="#i-cadeado"/></svg><svg width="16" height="16" style="transform:rotate(180deg)"><use href="#i-desce"/></svg></div>
       <button class="redondo" type="button" id="b-acao" aria-label="Gravar áudio"><svg width="24" height="24" id="b-acao-ic"><use href="#i-mic"/></svg></button>
     </form>
   </div>
@@ -618,7 +625,7 @@ function linha(m, ant){
   else if (m.tipo === "audio"){
     const fp = z ? "zeca.png" : ((perfis[m.autor_id] || {}).foto_url || "");
     const fo = fp ? `<span class="fo" style="background-image:url('${esc(fp)}')"></span>` : "";
-    h += `<div class="aud" data-path="${esc(m.arquivo_path)}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="bar"><i></i></span><small>0:00</small>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
+    h += `<div class="aud" data-path="${esc(m.arquivo_path)}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="bar"><i></i></span><small>0:00</small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
   }
   else if (m.tipo === "arquivo"){
     const ehImg = (m.arquivo_mime||"").startsWith("image/");
@@ -647,17 +654,25 @@ function ligarMidia(b){
   b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlAssinada(el.dataset.path); if (u){ el.src = u; el.onclick = () => visor(u); } });
   b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlAssinada(el.dataset.path); if (u) window.open(u, "_blank"); });
   b.querySelectorAll(".aud").forEach(el => {
-    let au = null; const bt = el.querySelector("button"), bar = el.querySelector(".bar i"), tm = el.querySelector("small");
+    let au = null; const bt = el.querySelector("button"), bar = el.querySelector(".bar i"), tm = el.querySelector("small"), vel = el.querySelector(".vel");
     const icone = n => bt.innerHTML = `<svg width="26" height="26"><use href="#i-${n}"/></svg>`;
+    const mostraVel = () => { const v = velAudio(); vel.textContent = (v === 1.5 ? "1,5" : v) + "x"; vel.classList.toggle("rapido", v > 1); };
+    mostraVel();
+    vel.onclick = e => { e.stopPropagation(); const v = velAudio() === 1 ? 1.5 : velAudio() === 1.5 ? 2 : 1;
+      try { localStorage.setItem("prosa_vel_audio", String(v)); } catch(x){}
+      document.querySelectorAll(".aud").forEach(a => a._mostraVel && a._mostraVel()); if (au) au.playbackRate = v; };
+    el._mostraVel = mostraVel;
     bt.onclick = async () => {
       if (!au){ const u = await urlAssinada(el.dataset.path); if (!u) return; au = new Audio(u);
         au.ontimeupdate = () => { if (isFinite(au.duration)) bar.style.width = (au.currentTime / au.duration * 100) + "%"; tm.textContent = mmss(au.currentTime); };
         au.onended = () => { icone("play"); bar.style.width = "0"; };
         au.onloadedmetadata = () => { if (isFinite(au.duration)) tm.textContent = mmss(au.duration); }; }
+      au.playbackRate = velAudio();
       if (au.paused){ document.querySelectorAll("audio").forEach(a => a.pause()); au.play(); icone("pause"); } else { au.pause(); icone("play"); }
     };
   });
 }
+function velAudio(){ try { const v = parseFloat(localStorage.getItem("prosa_vel_audio")); return [1, 1.5, 2].includes(v) ? v : 1; } catch(e){ return 1; } }
 function mmss(s){ s = Math.round(s||0); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); }
 function visor(u){ const v = document.createElement("div"); v.className = "visor"; v.innerHTML = `<img src="${esc(u)}" alt=""><button class="ib" type="button" aria-label="Fechar"><svg><use href="#i-voltar"/></svg></button>`; v.onclick = () => v.remove(); document.body.appendChild(v); }
 function rolar(forcar){ const M = $("msgs"); if (forcar || M.scrollHeight - M.scrollTop - M.clientHeight < 180) M.scrollTop = M.scrollHeight; }
@@ -752,18 +767,44 @@ $("form").onsubmit = e => e.preventDefault();
 function ajustarTxt(){ const t = $("txt"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 130) + "px"; trocarBotao(); }
 function trocarBotao(){
   const temTexto = $("txt").value.trim().length > 0;
-  $("b-acao-ic").innerHTML = `<use href="#${temTexto || gravador ? "i-enviar" : "i-mic"}"/>`;
+  $("b-acao-ic").innerHTML = `<use href="#${temTexto || (gravador && travado) ? "i-enviar" : "i-mic"}"/>`;
+  $("b-acao").classList.toggle("grav", !!gravador && !travado);
   $("b-acao").setAttribute("aria-label", temTexto ? "Enviar" : gravador ? "Enviar áudio" : "Gravar áudio");
   $("b-cam").hidden = temTexto;
 }
 $("txt").addEventListener("input", ajustarTxt);
 $("txt").addEventListener("focus", () => { if (!$("painel").hidden) fecharPainel(); });
 $("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer:fine)").matches){ e.preventDefault(); $("b-acao").click(); } });
-$("b-acao").onclick = () => {
-  if (gravador){ pararGravacao(true); return; }
-  const t = $("txt").value;
-  if (t.trim()){ $("txt").value = ""; ajustarTxt(); enviarTexto(t); return; }
+let segurando = false, travado = false, pX = 0, pY = 0, soltouAntes = false;
+$("b-acao").style.touchAction = "none";
+$("b-acao").addEventListener("pointerdown", e => {
+  if ($("txt").value.trim() || gravador) return;          // com texto (ou gravação travada) o toque é "enviar"
+  e.preventDefault(); $("b-acao").setPointerCapture(e.pointerId);
+  segurando = true; travado = false; soltouAntes = false; pX = e.clientX; pY = e.clientY;
   iniciarGravacao();
+});
+$("b-acao").addEventListener("pointermove", e => {
+  if (!segurando || travado) return;
+  const dx = e.clientX - pX, dy = e.clientY - pY;
+  $("g-trava").style.transform = `translateY(${Math.min(0, dy)}px)`;
+  if (dy < -70){ travado = true; segurando = false; $("g-trava").hidden = true; $("g-dica").textContent = "Gravando…"; $("g-cancel").hidden = false; trocarBotao(); navigator.vibrate && navigator.vibrate(30); }
+  else if (dx < -110){ segurando = false; pararGravacao(false); toast("Áudio descartado"); }
+  else $("g-dica").style.transform = `translateX(${Math.min(0, dx)}px)`;
+});
+function soltarMic(){
+  if (!segurando) return;
+  segurando = false;
+  if (!gravador){ soltouAntes = true; return; }           // soltou antes do microfone abrir
+  if (Date.now() - iniGrav < 700){ pararGravacao(false); toast("Segure para gravar, solte para enviar"); return; }
+  pararGravacao(true);
+}
+$("b-acao").addEventListener("pointerup", soltarMic);
+$("b-acao").addEventListener("pointercancel", () => { if (segurando){ segurando = false; pararGravacao(false); } });
+$("b-acao").onclick = () => {
+  if (gravador && travado){ pararGravacao(true); return; }
+  if (gravador) return;
+  const t = $("txt").value;
+  if (t.trim()){ $("txt").value = ""; ajustarTxt(); enviarTexto(t); }
 };
 async function subirArquivo(f, legenda){
   if (!f || !atual) return;
@@ -800,7 +841,10 @@ async function iniciarGravacao(){
   gravador = new MediaRecorder(st, tipo ? {mimeType: tipo} : undefined);
   pedacos = []; gravador.ondataavailable = e => { if (e.data.size) pedacos.push(e.data); };
   gravador.start(); iniGrav = Date.now();
-  $("pilula").hidden = true; $("gravando").hidden = false; $("resp").hidden = true; trocarBotao();
+  if (soltouAntes){ soltouAntes = false; pararGravacao(false); toast("Segure para gravar, solte para enviar"); return; }
+  $("pilula").hidden = true; $("gravando").hidden = false; $("resp").hidden = true;
+  $("g-cancel").hidden = !travado; $("g-trava").hidden = travado; $("g-trava").style.transform = ""; $("g-dica").style.transform = "";
+  $("g-dica").textContent = travado ? "Gravando…" : "‹ deslize para cancelar"; trocarBotao();
   tGrav = setInterval(() => $("g-tempo").textContent = mmss((Date.now() - iniGrav) / 1000), 300);
 }
 function pararGravacao(enviar){
@@ -808,7 +852,7 @@ function pararGravacao(enviar){
   const g = gravador; gravador = null; clearInterval(tGrav);
   g.onstop = async () => {
     g.stream.getTracks().forEach(t => t.stop());
-    $("pilula").hidden = false; $("gravando").hidden = true; $("g-tempo").textContent = "0:00"; if (respondendo) $("resp").hidden = false; trocarBotao();
+    $("pilula").hidden = false; $("gravando").hidden = true; $("g-trava").hidden = true; travado = false; $("g-tempo").textContent = "0:00"; if (respondendo) $("resp").hidden = false; trocarBotao();
     if (!enviar || Date.now() - iniGrav < 800) return;
     const mime = (g.mimeType || "audio/webm").split(";")[0];
     const ext = mime.includes("mp4") ? "m4a" : "webm";
@@ -1162,7 +1206,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22l";
+const VERSAO_APP = "2026-09-22m";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
