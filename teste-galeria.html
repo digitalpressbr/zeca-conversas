@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste da galeria</title>
+<style>
+:root{--bg:#fff;--ink:#111B21;--muted:#667781;--line:#E9EDEF;--ok:#1F7A4D}
+@media (prefers-color-scheme: dark){:root{--bg:#111B21;--ink:#E9EDEF;--muted:#8696A0;--line:#222D34}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Roboto,"Segoe UI",sans-serif;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 6px}
+p{color:var(--muted);margin:0 0 16px;font-size:15px}
+.nav{font-size:14px;padding:10px 12px;border-radius:10px;background:#E7F3EC;color:#1F6B45;margin-bottom:18px}
+label{position:relative;display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;font-size:17px;cursor:pointer}
+label b{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ok);color:#fff;font-size:18px;flex:none}
+label small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+label input{position:absolute;inset:0;opacity:0;width:100%;height:100%}
+.res{font-size:14px;color:var(--ok);margin:-6px 0 12px 8px;min-height:1em}
+</style>
+</head>
+<body>
+<h1>Teste da galeria</h1>
+<p>Toque em cada opção e veja se abre direto as suas fotos. Depois me diga o número que abriu as fotos (pode ser mais de um).</p>
+<div class="nav" id="nav"></div>
+
+<label><b>1</b><span>Opção 1<small>jeito atual</small></span><input type="file" accept="image/*"></label>
+<div class="res" id="r1"></div>
+<label><b>2</b><span>Opção 2<small>tipos de foto separados</small></span><input type="file" accept="image/jpeg,image/png"></label>
+<div class="res" id="r2"></div>
+<label><b>3</b><span>Opção 3<small>várias fotos de uma vez</small></span><input type="file" accept="image/*" multiple></label>
+<div class="res" id="r3"></div>
+<label><b>4</b><span>Opção 4<small>por extensão do arquivo</small></span><input type="file" accept=".jpg,.jpeg,.png,.webp,.heic"></label>
+<div class="res" id="r4"></div>
+
+<script>
+const u = navigator.userAgent;
+const nav = /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /Chrome\//.test(u) ? "Google Chrome" : "Outro";
+const inst = matchMedia("(display-mode: standalone)").matches ? " (aberto como aplicativo instalado)" : " (aberto no navegador)";
+const and = (u.match(/Android [\d.]+/) || ["Android ?"])[0];
+document.getElementById("nav").textContent = "Você está no: " + nav + inst + " · " + and;
+document.querySelectorAll("input").forEach((i, k) => i.onchange = () => {
+  document.getElementById("r" + (k + 1)).textContent = i.files.length ? "Escolheu: " + i.files[0].name : "";
+});
+</script>
+</body>
+</html>
