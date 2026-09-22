@@ -51,6 +51,10 @@ button{cursor:pointer}
 .av.zeca{background-color:#F7F5EE;background-image:url(zeca.png)}
 .av.grupo{background:#BCC7CE;color:#fff}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#t-login, #t-senha{background:#F7F1E3 url(fundo-login.webp) center/cover fixed}
+#t-login::before, #t-senha::before{content:"";position:absolute;inset:0;background:rgba(255,252,245,.55);pointer-events:none}
+#t-login .scroll, #t-senha .scroll{position:relative;z-index:1}
+@media (prefers-color-scheme: dark){ #t-login::before, #t-senha::before{background:rgba(11,20,26,.78)} }
 .login{padding:calc(var(--safe-t) + 44px) 24px 24px;display:grid;gap:18px;align-content:start;max-width:420px;margin:0 auto;width:100%}
 .login .logo{width:104px;height:104px;border-radius:24px;background:url(icon-512.png) center/cover;justify-self:center;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .login h2{text-align:center;margin:0;font-size:24px;font-weight:600}
@@ -1505,7 +1509,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22x";
+const VERSAO_APP = "2026-09-22y";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
