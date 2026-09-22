@@ -874,15 +874,23 @@ function escolherFoto(cb, prefixo, temFoto){
     ${botaoArquivo("Câmera", "i-camera", "image/*", "user")}
     </div>${ehSamsung ? `<p class="dica">No navegador da Samsung a Galeria abre como "Meus arquivos". Abra a Prosa pelo Chrome para escolher direto das fotos.</p>` : ""}</div>`;
   d.onclick = e => { if (e.target === d) d.remove(); };
-  d.querySelectorAll("input[type=file]").forEach(i => i.onchange = () => { const f = i.files[0]; d.remove(); if (f && fotoCb) recortar(f); });
+  d.querySelectorAll("input[type=file]").forEach(i => i.onchange = () => { const f = i.files[0]; d.remove(); if (f && fotoCb) recortar(f, {accept: i.accept, capture: i.getAttribute("capture")}); });
 
   document.body.appendChild(d);
 }
 
-function recortar(arquivo){
+// reabre o mesmo seletor (galeria ou câmera); precisa rodar dentro do toque do usuário
+function reabrirSeletor(origem){
+  const i = document.createElement("input"); i.type = "file"; i.accept = origem.accept || "image/*";
+  if (origem.capture) i.setAttribute("capture", origem.capture);
+  i.onchange = () => { const f = i.files[0]; if (f && fotoCb) recortar(f, origem); };
+  i.click();
+}
+function recortar(arquivo, origem){
+  origem = origem || {accept: "image/*"};
   const url = URL.createObjectURL(arquivo);
   const tela = document.createElement("div"); tela.className = "recorte";
-  tela.innerHTML = `<div class="rc-topo"><button type="button" class="ib" data-x aria-label="Cancelar"><svg><use href="#i-voltar"/></svg></button><b>Mover e redimensionar</b></div>
+  tela.innerHTML = `<div class="rc-topo"><button type="button" class="ib" data-volta aria-label="Voltar para as fotos"><svg><use href="#i-voltar"/></svg></button><b>Mover e redimensionar</b></div>
     <div class="rc-area"><img alt="" draggable="false"><div class="rc-circ"></div></div>
     <div class="rc-baixo"><button type="button" data-x>Cancelar</button><span>Arraste e use dois dedos para aproximar</span><button type="button" data-ok>Concluído</button></div>`;
   document.body.appendChild(tela);
@@ -920,8 +928,19 @@ function recortar(arquivo){
   area.addEventListener("dblclick", e => { const p = local(e); zoomEm(s > sMin * 1.5 ? sMin / s : 2, p.x, p.y); });
   const aoGirar = () => { if (!W) return; const f = s / sMin; medir(); sMin = D / Math.min(W, H); s = sMin * f; prender(); };
   window.addEventListener("resize", aoGirar);
-  function fechar(){ window.removeEventListener("resize", aoGirar); URL.revokeObjectURL(url); tela.remove(); }
-  tela.querySelectorAll("[data-x]").forEach(b => b.onclick = fechar);
+  // botão voltar do Android: fecha o recorte e mostra de novo Galeria / Câmera
+  let aberto = true;
+  history.pushState({recorte: 1}, "");
+  const aoVoltarAndroid = () => { if (!aberto) return; fechar(true); escolherFoto(fotoCb, fotoPrefixo); };
+  window.addEventListener("popstate", aoVoltarAndroid);
+  function fechar(peloAndroid){
+    if (!aberto) return; aberto = false;
+    window.removeEventListener("resize", aoGirar); window.removeEventListener("popstate", aoVoltarAndroid);
+    URL.revokeObjectURL(url); tela.remove();
+    if (!peloAndroid && history.state && history.state.recorte) history.back();
+  }
+  tela.querySelectorAll("[data-x]").forEach(b => b.onclick = () => fechar());
+  tela.querySelector("[data-volta]").onclick = () => { fechar(); reabrirSeletor(origem); };
   tela.querySelector("[data-ok]").onclick = async () => {
     if (!W) return;
     const T = 640, cv = document.createElement("canvas"); cv.width = cv.height = T;
@@ -954,11 +973,11 @@ function meuPerfil(){
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22c";
+const VERSAO_APP = "2026-09-22d";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
-  $("b-chrome").href = "intent://" + location.host + location.pathname + "#Intent;scheme=https;package=com.android.chrome;end";
+  $("b-chrome").href = "intent://" + location.host + location.pathname.replace(/[^/]*$/, "") + "instalar.html#Intent;scheme=https;package=com.android.chrome;end";
 }
 // atualização automática: se o arquivo version.txt do site mudou, recarrega uma vez
 async function conferirVersao(){

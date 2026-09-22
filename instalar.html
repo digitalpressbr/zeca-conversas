@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instalar a Prosa</title>
+<meta name="theme-color" content="#1F7A4D">
+<link rel="manifest" href="manifest.webmanifest?v=22c">
+<link rel="icon" href="favicon-32.png?v=22c">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=22c">
+<style>
+:root{--bg:#F4F7F5;--card:#fff;--ink:#111B21;--muted:#5F6F68;--line:#E3E9E5;--verde:#1F7A4D;--verde2:#25A55F}
+@media (prefers-color-scheme: dark){:root{--bg:#0B141A;--card:#111B21;--ink:#E9EDEF;--muted:#8696A0;--line:#222D34}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:-apple-system,Roboto,"Segoe UI",sans-serif;display:grid;place-items:center;padding:24px 16px}
+.cx{width:100%;max-width:420px;background:var(--card);border-radius:24px;padding:32px 24px 28px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08);display:grid;gap:14px;justify-items:center}
+.icone{width:112px;height:112px;border-radius:26px;background:url(icon-512.png?v=22c) center/cover;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+h1{margin:6px 0 0;font-size:28px}
+p{margin:0;color:var(--muted);font-size:16px;line-height:1.45}
+.btn{display:block;width:100%;padding:16px;border-radius:30px;border:0;background:var(--verde);color:#fff;font-size:18px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn.sec{background:transparent;color:var(--verde);border:1.5px solid var(--verde)}
+ol{text-align:left;margin:4px 0 0;padding-left:22px;color:var(--ink);font-size:15.5px;line-height:1.6}
+.ok{color:var(--verde);font-weight:600}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="cx">
+  <div class="icone" role="img" aria-label="Ícone da Prosa"></div>
+  <h1>Prosa</h1>
+  <p>Conversas da equipe da Cerrado Consultoria</p>
+
+  <!-- fora do Chrome no Android: leva para o Chrome -->
+  <section id="p-chrome" hidden style="display:grid;gap:12px;width:100%">
+    <p>A Prosa precisa ser instalada pelo <b>Google Chrome</b>, para a galeria de fotos funcionar.</p>
+    <a class="btn" id="b-chrome" href="#">Abrir no Chrome</a>
+    <p style="font-size:14px">Se não abrir, instale o Chrome pela Play Store e toque de novo.</p>
+  </section>
+
+  <!-- no Chrome: botão de instalar -->
+  <section id="p-instalar" hidden style="display:grid;gap:12px;width:100%">
+    <button class="btn" id="b-instalar" type="button">Instalar a Prosa</button>
+  </section>
+
+  <!-- no Chrome, sem o aviso automático -->
+  <section id="p-manual" hidden style="display:grid;gap:12px;width:100%">
+    <p>Para instalar:</p>
+    <ol>
+      <li>Toque nos <b>três pontinhos</b> no canto de cima do Chrome.</li>
+      <li>Toque em <b>Instalar aplicativo</b> (ou <b>Adicionar à tela inicial</b>).</li>
+      <li>Confirme em <b>Instalar</b>.</li>
+    </ol>
+    <a class="btn sec" href="./">Já instalei, abrir a Prosa</a>
+  </section>
+
+  <!-- iPhone -->
+  <section id="p-ios" hidden style="display:grid;gap:12px;width:100%">
+    <p>No iPhone, abra este link no <b>Safari</b> e:</p>
+    <ol>
+      <li>Toque em <b>Compartilhar</b> (quadrado com seta, embaixo).</li>
+      <li>Toque em <b>Adicionar à Tela de Início</b>.</li>
+      <li>Abra a Prosa pelo ícone novo.</li>
+    </ol>
+  </section>
+
+  <section id="p-pronto" hidden style="display:grid;gap:12px;width:100%">
+    <p class="ok">Pronto! A Prosa foi instalada.</p>
+    <p>Abra pelo ícone da Prosa na tela inicial do celular.</p>
+  </section>
+</main>
+<script>
+const u = navigator.userAgent;
+const android = /Android/i.test(u), ios = /iPhone|iPad|iPod/i.test(u);
+const chromeDeVerdade = android && /Chrome\//.test(u) && !/SamsungBrowser|EdgA|OPR|YaBrowser|Firefox|FB_IAB|FBAN|Instagram|WhatsApp|; wv\)/i.test(u);
+const instalado = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const mostra = id => ["p-chrome","p-instalar","p-manual","p-ios","p-pronto"].forEach(x => document.getElementById(x).hidden = x !== id);
+const intent = "intent://" + location.host + location.pathname + "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" +
+  encodeURIComponent("https://play.google.com/store/apps/details?id=com.android.chrome") + ";end";
+
+if (instalado) location.replace("./");
+else if (ios) mostra("p-ios");
+else if (android && !chromeDeVerdade){
+  mostra("p-chrome");
+  document.getElementById("b-chrome").href = intent;
+  setTimeout(() => { location.href = intent; }, 400);   // tenta abrir o Chrome sozinho
+} else {
+  let evento = null;
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); evento = e; mostra("p-instalar"); });
+  window.addEventListener("appinstalled", () => mostra("p-pronto"));
+  document.getElementById("b-instalar").onclick = async () => {
+    if (!evento) { mostra("p-manual"); return; }
+    evento.prompt();
+    const r = await evento.userChoice; evento = null;
+    mostra(r.outcome === "accepted" ? "p-pronto" : "p-manual");
+  };
+  setTimeout(() => { if (!evento && document.getElementById("p-pronto").hidden) mostra("p-manual"); }, 3500);
+}
+</script>
+</body>
+</html>
