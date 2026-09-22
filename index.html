@@ -332,7 +332,6 @@ button{cursor:pointer}
       <button type="button" data-f="tudo" aria-pressed="true">Tudo</button>
       <button type="button" data-f="naolidas" aria-pressed="false">Não lidas</button>
       <button type="button" data-f="grupos" aria-pressed="false">Grupos</button>
-      <button type="button" data-f="contatos" aria-pressed="false">Contatos</button>
     </div>
     <div class="aviso" id="aviso-push" hidden><b>Ativar os avisos de mensagem</b><span>Para o celular avisar cada mensagem nova, mesmo bloqueado.</span><div class="acoes"><button type="button" id="b-push">Ativar avisos</button><button type="button" class="sec" id="b-push-depois">Depois</button></div></div>
     <div class="aviso" id="aviso-ios" hidden><b>No iPhone, instale a Prosa na tela inicial</b><span>Toque em <b>Compartilhar</b> (quadrado com seta, embaixo) e depois em <b>Adicionar à Tela de Início</b>. Abra pelo ícone da Prosa: aí dá para ativar os avisos.</span><div class="acoes"><button type="button" class="sec" id="b-ios-ok">Entendi</button></div></div>
@@ -593,18 +592,8 @@ function previa(c){
   }
   return {txt: quem + descreve(u), tk};
 }
-function desenharContatos(q){
-  const L = $("lista");
-  const gente = [{zeca:true, nome:"Zeca", recado:"Assistente da Cerrado"}].concat(Object.values(perfis).filter(p => p.id !== eu.id).sort((a, b) => a.nome.localeCompare(b.nome)))
-    .filter(p => !q || p.nome.toLowerCase().includes(q));
-  L.innerHTML = `<button type="button" class="row" id="lc-add"><span class="av" style="background:var(--accent2)"><svg width="26" height="26"><use href="#i-nova"/></svg></span><span class="mid"><span class="nm">Adicionar pessoa</span><span class="pv"><span class="t">Convidar pelo número do celular</span></span></span><span class="rt"></span></button>`
-    + gente.map(p => `<button type="button" class="row" data-pessoa="${p.zeca ? "zeca" : p.id}">${avatar(p)}<span class="mid"><span class="nm">${esc(p.nome)}</span><span class="pv"><span class="t">${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</span></span></span><span class="rt"></span></button>`).join("");
-  $("lc-add").onclick = () => adicionarPessoa();
-  L.querySelectorAll("[data-pessoa]").forEach(b => b.onclick = () => individual(b.dataset.pessoa));
-}
 function desenharLista(){
   const q = ($("q").value || "").toLowerCase().trim();
-  if (filtro === "contatos"){ desenharContatos(q); atualizarBadge(); return; }
   const vis = conversas.filter(c => (filtro === "naolidas" ? c.naoLidas : filtro === "grupos" ? c.tipo === "grupo" : true) && (!q || c.titulo.toLowerCase().includes(q)));
   const L = $("lista");
   if (!conversas.length) L.innerHTML = `<div class="vazio"><b>Nenhuma conversa ainda</b><span>Toque no botão verde para conversar com o Zeca, com alguém da equipe ou criar um grupo.</span></div>`;
@@ -1468,7 +1457,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22t";
+const VERSAO_APP = "2026-09-22s";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
