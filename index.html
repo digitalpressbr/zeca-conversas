@@ -93,21 +93,21 @@ button{cursor:pointer}
 .row .n{background:var(--badge);color:#fff;font-weight:600;font-size:12px;min-width:21px;height:21px;border-radius:11px;display:grid;place-items:center;padding:0 6px}
 .vazio{padding:48px 28px;text-align:center;color:var(--muted);display:grid;gap:10px;font-size:15px}
 .fab{position:fixed;right:max(16px, calc(50vw - 380px + 16px));bottom:calc(var(--safe-b) + 20px);width:58px;height:58px;border-radius:17px;background:var(--accent2);color:#fff;border:0;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
-.msgs{flex:1;overflow-y:auto;background-color:var(--wall);padding:8px 6% 10px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;position:relative;
+.msgs{flex:1;overflow-y:auto;background-color:var(--wall);padding:8px 14px 10px;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;position:relative;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%23b9ad99' stroke-opacity='.35' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 40c0-12 8-18 18-18-1 10-6 18-18 18zM20 40c0-8-4-12-10-13 0 8 4 12 10 13zM20 40v10'/%3E%3Cpath d='M110 24l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z'/%3E%3Cpath d='M60 100c10 0 18 6 18 14H42c0-8 8-14 18-14zM52 114v10M68 114v10'/%3E%3Ccircle cx='128' cy='110' r='10'/%3E%3Cpath d='M128 96v-6M128 130v-6M114 110h-6M148 110h-6'/%3E%3Cpath d='M18 128l10-10 8 8 12-12'/%3E%3Cpath d='M86 60h18v14H86zM90 60v-4h10v4'/%3E%3C/g%3E%3C/svg%3E")}
 .divis{align-self:center;font-size:12.5px;font-weight:500;color:var(--muted);background:var(--in);padding:5px 12px;border-radius:8px;margin:10px 0 6px;box-shadow:0 1px .5px rgba(0,0,0,.13);text-align:center;max-width:90%}
 .divis.dia{text-transform:uppercase;letter-spacing:.02em}
-.naolidas{align-self:stretch;text-align:center;font-size:13px;color:var(--muted);background:rgba(255,255,255,.55);padding:5px;margin:8px -6% 6px;font-weight:500}
+.naolidas{align-self:stretch;text-align:center;font-size:13px;color:var(--muted);background:rgba(255,255,255,.55);padding:5px;margin:8px -14px 6px;font-weight:500}
 .lin{display:flex;flex-direction:column;margin-top:2px}
 .lin.nova{margin-top:10px}
-.m{position:relative;max-width:min(80%,520px);padding:6px 8px 8px 9px;border-radius:8px;background:var(--in);font-size:15.5px;line-height:1.35;box-shadow:0 1px .5px rgba(0,0,0,.13);word-wrap:break-word;overflow-wrap:anywhere;align-self:flex-start;-webkit-user-select:text;user-select:text;-webkit-touch-callout:none}
+.m{position:relative;max-width:calc(100% - 10px);padding:6px 8px 8px 9px;border-radius:8px;background:var(--in);font-size:15.5px;line-height:1.35;box-shadow:0 1px .5px rgba(0,0,0,.13);word-wrap:break-word;overflow-wrap:anywhere;align-self:flex-start;-webkit-user-select:text;user-select:text;-webkit-touch-callout:none}
 .lin.eu .m{align-self:flex-end;background:var(--out)}
 .lin.nova .m.cauda{border-top-left-radius:0}
 .lin.eu.nova .m.cauda{border-top-left-radius:8px;border-top-right-radius:0}
 .lin.nova .m.cauda::before{content:"";position:absolute;top:0;left:-8px;width:8px;height:13px;background:var(--in);clip-path:polygon(0 0,100% 0,100% 100%)}
 .lin.eu.nova .m.cauda::before{left:auto;right:-8px;background:var(--out);clip-path:polygon(0 0,100% 0,0 100%)}
 .m .qm{font-size:13.5px;font-weight:600;margin-bottom:2px}
-.m .tx{white-space:pre-wrap}
+.m .tx{white-space:pre-wrap;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .m .tx img.ze{width:22px;height:22px;vertical-align:-5px;margin:0 1px}
 .m.jumbo{background:transparent!important;box-shadow:none;padding:0 2px}
 .m.jumbo::before{display:none}
@@ -1295,7 +1295,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22o";
+const VERSAO_APP = "2026-09-22p";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
