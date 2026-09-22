@@ -330,6 +330,20 @@ button{cursor:pointer}
   </div></div>
 </section>
 
+<section class="tela" id="t-pin" hidden>
+  <div class="scroll"><div class="login">
+    <div class="logo" role="img" aria-label="Prosa"></div>
+    <h2 id="pin-tit">PIN de segurança</h2>
+    <p id="pin-sub"></p>
+    <div class="fld"><label for="pin1">PIN de 6 números</label><input id="pin1" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"></div>
+    <div class="fld" id="fld-pin2"><label for="pin2">Repita o PIN</label><input id="pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"></div>
+    <button class="btn" id="pin-ok" type="button">Salvar PIN</button>
+    <div class="erro" id="pin-erro" role="alert"></div>
+    <p class="dica" id="pin-aviso">Este PIN protege a cópia da sua chave. Sem ele, nem a Cerrado consegue abrir as suas conversas em um celular novo.</p>
+    <button class="btn sec" id="pin-recomecar" type="button" hidden>Esqueci o PIN: criar chave nova</button>
+  </div></div>
+</section>
+
 <section class="tela" id="t-lista" hidden>
   <div class="hdr">
     <h1>Prosa</h1>
@@ -418,7 +432,7 @@ const $ = id => document.getElementById(id);
 let eu = null, perfis = {}, conversas = [], atual = null, canal = null, instalarEvt = null, filtro = "tudo";
 let lidosAtual = {}, msgsAtual = [], respondendo = null;
 
-function mostrar(id){ ["t-login","t-senha","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
+function mostrar(id){ ["t-login","t-senha","t-pin","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function fmt(s){
   const h = esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>").replace(/(^|\s)_([^_\n]+)_/g,"$1<i>$2</i>").replace(/~([^~\n]+)~/g,"<s>$1</s>").replace(/```([^`]+)```/g,"<code>$1</code>")
@@ -585,6 +599,55 @@ $("s-salvar").onclick = async () => {
 };
 $("s-cancelar").onclick = () => mostrar("t-lista");
 
+// ---------------- tela do PIN (criar, recuperar ou recomeçar)
+function telaPin(modo, aviso, bkp){
+  return new Promise(resolve => {
+    const criar = modo === "criar", recomecar = modo === "recomecar";
+    $("pin-tit").textContent = criar ? "Crie seu PIN de segurança" : recomecar ? "Criar chave nova" : "Digite seu PIN";
+    $("pin-sub").textContent = aviso || (criar
+      ? "Suas mensagens são protegidas de ponta a ponta. Este PIN guarda a cópia da sua chave para você entrar em outro celular."
+      : recomecar ? "Escolha um PIN novo. As conversas antigas ficam ilegíveis para você."
+      : "Digite o PIN que você criou para abrir as suas conversas neste aparelho.");
+    $("fld-pin2").hidden = !(criar || recomecar);
+    $("pin-ok").textContent = criar || recomecar ? "Salvar PIN" : "Entrar";
+    $("pin-recomecar").hidden = !(modo === "abrir");
+    $("pin1").value = ""; $("pin2").value = ""; $("pin-erro").textContent = "";
+    mostrar("t-pin"); setTimeout(() => $("pin1").focus(), 120);
+    $("pin-ok").onclick = async () => {
+      const p1 = $("pin1").value.replace(/\D/g, ""), p2 = $("pin2").value.replace(/\D/g, "");
+      if (p1.length !== 6){ $("pin-erro").textContent = "O PIN tem 6 números."; return; }
+      if ((criar || recomecar) && p1 !== p2){ $("pin-erro").textContent = "Os dois PINs estão diferentes."; return; }
+      $("pin-ok").disabled = true; $("pin-erro").textContent = "";
+      try {
+        if (recomecar) await cofre({acao:"recomecar"});
+        if (criar || recomecar) await criarIdentidade(p1);
+        else await recuperarIdentidade(p1, bkp);
+        $("pin-ok").disabled = false; resolve(true);
+      } catch(e){
+        $("pin-erro").textContent = e.message || "Não consegui."; $("pin-ok").disabled = false;
+      }
+    };
+    $("pin-recomecar").onclick = () => resolve(telaPin("recomecar"));
+  });
+}
+async function trocarPin(){
+  const atual = prompt("PIN atual (6 números)"); if (atual === null) return;
+  const novo = prompt("PIN novo (6 números)"); if (novo === null) return;
+  if ((novo || "").replace(/\D/g, "").length !== 6){ toast("O PIN tem 6 números."); return; }
+  try {
+    const { data: bkp } = await sb.from("zeca_backup").select("*").eq("perfil_id", eu.id).maybeSingle();
+    const velho = await doPin(atual.replace(/\D/g, ""), bkp.salt);
+    const novoP = await doPin(novo.replace(/\D/g, ""));
+    const { pepper } = await cofre({acao:"guardar", verificador: novoP.verificador, verificador_antigo: velho.verificador});
+    const bk = await chaveBackup(novoP.k1, pepper);
+    const pkcs8 = await crypto.subtle.exportKey("pkcs8", await idbPor("ler", "priv:" + eu.id));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, bk, pkcs8);
+    await sb.from("zeca_backup").upsert({perfil_id: eu.id, salt: novoP.salt, iv: bin64(iv), ct: bin64(ct)});
+    toast("PIN trocado.");
+  } catch(e){ toast(e.message || "Não consegui trocar o PIN."); }
+}
+
 // ---------------- lista de conversas
 async function carregarPerfis(){ const { data } = await sb.from("zeca_perfis").select("*"); perfis = {}; (data||[]).forEach(p => perfis[p.id] = p); }
 async function carregarConversas(){
@@ -601,7 +664,7 @@ async function carregarConversas(){
     if (c.tipo === "individual"){ const o = c.membros.find(id => id !== uid); c.outro = o ? perfis[o] : null; c.titulo = c.outro ? c.outro.nome : "Zeca"; }
     else c.titulo = c.nome || "Grupo";
     const { data: ult } = await sb.from("zeca_mensagens").select("*").eq("conversa_id", c.id).order("id",{ascending:false}).limit(1);
-    c.ultima = (ult||[])[0] || null;
+    c.ultima = (ult||[])[0] ? await abrirMsg(c, (ult||[])[0]) : null;
     const { count } = await sb.from("zeca_mensagens").select("id", {count:"exact", head:true}).eq("conversa_id", c.id).gt("criado_em", lido[c.id]).or(`autor_id.is.null,autor_id.neq.${uid}`).neq("tipo","sistema");
     c.naoLidas = count || 0;
     return c;
@@ -662,8 +725,10 @@ async function abrir(id){
     sb.from("zeca_mensagens").select("*").eq("conversa_id", id).order("id", {ascending:false}).limit(400),
     sb.from("zeca_membros").select("perfil_id,lido_ate").eq("conversa_id", id)]);
   lidosAtual = {}; (mems||[]).forEach(m => lidosAtual[m.perfil_id] = m.lido_ate);
-  msgsAtual = (data || []).reverse();
+  msgsAtual = [];
+  for (const m of (data || []).reverse()) msgsAtual.push(await abrirMsg(atual, m));
   desenharMsgs(corte);
+  repararCK(atual);
   marcarLido();
 }
 function divisor(texto, dia){ const x = document.createElement("div"); x.className = "divis" + (dia ? " dia" : ""); x.textContent = texto; return x; }
@@ -677,6 +742,9 @@ function desenharMsgs(corte){
     if (naoLidas && !poe && conta(m)){ poe = true; const x = document.createElement("div"); x.className = "naolidas"; x.id = "marca-nl"; x.textContent = naoLidas === 1 ? "1 mensagem não lida" : naoLidas + " mensagens não lidas"; M.appendChild(x); ant = null; }
     M.appendChild(linha(m, ant)); ant = m;
   });
+  const av = document.createElement("div"); av.className = "divis"; av.style.textTransform = "none"; av.style.maxWidth = "94%";
+  av.textContent = "🔒 As mensagens desta conversa são protegidas com criptografia de ponta a ponta. Ninguém fora dela, nem a Cerrado, consegue ler.";
+  M.insertBefore(av, M.firstChild);
   const marca = $("marca-nl");
   if (marca) marca.scrollIntoView({block:"center"}); else rolar(true);
 }
@@ -696,22 +764,23 @@ function linha(m, ant){
   else if (m.tipo === "audio"){
     const fp = z ? "zeca.png" : ((perfis[m.autor_id] || {}).foto_url || "");
     const fo = fp ? `<span class="fo" style="background-image:url('${esc(fp)}')"></span>` : "";
-    h += `<div class="aud" data-path="${esc(m.arquivo_path)}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="onda" aria-label="Posição do áudio"></span><small>0:00</small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
+    h += `<div class="aud" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "audio/mpeg")}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="onda" aria-label="Posição do áudio"></span><small>0:00</small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
   }
   else if (m.tipo === "recado"){
     cls = "m rec";
-    h += `<div class="recado" data-path="${esc(m.arquivo_path)}"><video playsinline preload="metadata"></video><span class="rc-play"><svg width="40" height="40"><use href="#i-play"/></svg></span><span class="rc-dur"></span></div>${meta}`;
+    h += `<div class="recado" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "video/mp4")}"><video playsinline preload="metadata"></video><span class="rc-play"><svg width="40" height="40"><use href="#i-play"/></svg></span><span class="rc-dur"></span></div>${meta}`;
   }
   else if (m.tipo === "arquivo" && (m.arquivo_mime||"").startsWith("video/")){
-    h += `<video class="vid" data-path="${esc(m.arquivo_path)}" controls playsinline preload="metadata"></video><div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
+    h += `<video class="vid" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "video/mp4")}" controls playsinline preload="metadata"></video><div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
   }
   else if (m.tipo === "arquivo"){
     const ehImg = (m.arquivo_mime||"").startsWith("image/");
     const ext = ((m.arquivo_nome||"").split(".").pop()||"").toLowerCase();
     const icls = ext === "kml" || ext === "kmz" ? "kml" : (ext.startsWith("xls") || ext === "csv") ? "xls" : ext.startsWith("doc") ? "doc" : "";
-    h += ehImg ? `<img class="img" data-path="${esc(m.arquivo_path)}" alt="${esc(m.arquivo_nome)}">`
-      : `<button type="button" class="arq" data-path="${esc(m.arquivo_path)}"><span class="ic ${icls}">${esc(ext.toUpperCase().slice(0,4) || "ARQ")}</span><span><b>${esc(m.arquivo_nome)}</b><small>Toque para abrir</small></span></button>`;
+    h += ehImg ? `<img class="img" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "image/jpeg")}" alt="${esc(m.arquivo_nome)}">`
+      : `<button type="button" class="arq" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "application/octet-stream")}"><span class="ic ${icls}">${esc(ext.toUpperCase().slice(0,4) || "ARQ")}</span><span><b>${esc(m.arquivo_nome)}</b><small>Toque para abrir</small></span></button>`;
     h += `<div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
+  } else if (m._sem_chave){ h += `<div class="tx" style="font-style:italic;color:var(--muted)">🔒 Mensagem protegida. Abra a Prosa no celular onde você já entrou, ou digite o seu PIN para liberar.${meta}</div>`;
   } else if (soEmoji(m.texto) && !m.resposta_id){ cls = "m jumbo"; h += `<div class="tx">${fmt(m.texto)}</div>${meta}`; }
   else h += `<div class="tx">${fmt(m.texto)}${meta}</div>`;
   if (m.botoes && m.botoes.length && !m.apagada) h += `<div class="bts">${m.botoes.map(x => `<button type="button" data-b="${esc(x)}">${esc(x)}</button>`).join("")}</div>`;
@@ -728,11 +797,25 @@ function citaHtml(r){
 }
 function irPara(id){ const el = $("msgs").querySelector(`.lin[data-id="${id}"]`); if (el){ el.scrollIntoView({block:"center", behavior:"smooth"}); el.animate([{background:"rgba(31,122,77,.22)"},{background:"transparent"}], {duration:1400}); } }
 async function urlAssinada(path){ const { data } = await sb.storage.from("zeca-anexos").createSignedUrl(path, 3600); return data ? data.signedUrl : null; }
+const URLS = new Map();
+// arquivo cifrado: baixa, abre com a chave da conversa e devolve um endereço local
+async function urlDoArquivo(path, mime){
+  if (URLS.has(path)) return URLS.get(path);
+  const u = await urlAssinada(path); if (!u) return null;
+  const versao = versaoDoArquivo(path);
+  if (!versao){ URLS.set(path, u); return u; }
+  try {
+    const buf = await (await fetch(u)).arrayBuffer();
+    const claro = await decifrarBytes(atual, buf, versao);
+    const url = URL.createObjectURL(new Blob([claro], {type: mime || "application/octet-stream"}));
+    URLS.set(path, url); return url;
+  } catch(e){ return null; }
+}
 function ligarMidia(b){
-  b.querySelectorAll("video.vid[data-path]").forEach(async el => { const u = await urlAssinada(el.dataset.path); if (u) el.src = u; });
+  b.querySelectorAll("video.vid[data-path]").forEach(async el => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u) el.src = u; });
   b.querySelectorAll(".recado").forEach(async el => {
     const v = el.querySelector("video"), pl = el.querySelector(".rc-play"), du = el.querySelector(".rc-dur");
-    const u = await urlAssinada(el.dataset.path); if (!u) return; v.src = u;
+    const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (!u) return; v.src = u;
     v.onloadedmetadata = () => { if (isFinite(v.duration)) du.textContent = mmss(v.duration); };
     v.onended = () => { pl.hidden = false; v.currentTime = 0; };
     el.onclick = () => {
@@ -740,8 +823,8 @@ function ligarMidia(b){
       else { v.pause(); pl.hidden = false; }
     };
   });
-  b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlAssinada(el.dataset.path); if (u){ el.src = u; el.onclick = () => visor(u); } });
-  b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlAssinada(el.dataset.path); if (u) window.open(u, "_blank"); });
+  b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u){ el.src = u; el.onclick = () => visor(u); } });
+  b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u) window.open(u, "_blank"); });
   b.querySelectorAll(".aud").forEach(el => {
     let au = null; const bt = el.querySelector("button"), onda = el.querySelector(".onda"), tm = el.querySelector("small"), vel = el.querySelector(".vel");
     const icone = n => bt.innerHTML = `<svg width="26" height="26"><use href="#i-${n}"/></svg>`;
@@ -755,7 +838,7 @@ function ligarMidia(b){
     el._mostraVel = mostraVel;
     const preparar = async () => {
       if (au) return true;
-      const u = await urlAssinada(el.dataset.path); if (!u) return false; au = new Audio(u); au._icone = icone;
+      const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (!u) return false; au = new Audio(u); au._icone = icone;
       au.ontimeupdate = () => { if (isFinite(au.duration) && au.duration) pintar(au.currentTime / au.duration); tm.textContent = mmss(au.currentTime); };
       au.onended = () => { icone("play"); pintar(0); if (audioTocando === au) audioTocando = null; };
       au.onpause = () => icone("play");
@@ -785,7 +868,7 @@ function barrasFalsas(chave){ let h = 7; for (const c of chave) h = (h * 31 + c.
   return Array.from({length: BARRAS}, (_, i) => { h = (h * 1103515245 + 12345) >>> 0; return 0.25 + 0.6 * ((h >> 8) % 1000) / 1000 * (0.6 + 0.4 * Math.sin(i / 3)); }); }
 function pintarBarras(onda, alturas){ onda.innerHTML = alturas.map(a => `<i style="height:${Math.round(6 + a * 24)}px"></i>`).join(""); }
 async function calcularOnda(path){
-  const u = await urlAssinada(path); if (!u) throw new Error("sem url");
+  const u = await urlDoArquivo(path, "audio/mpeg"); if (!u) throw new Error("sem url");
   const buf = await (await fetch(u)).arrayBuffer();
   const Ctx = window.AudioContext || window.webkitAudioContext;
   const ctx = new Ctx();
@@ -897,6 +980,10 @@ async function apagar(m){ if (!confirm("Apagar esta mensagem para todos?")) retu
 // ---------------- enviar
 async function inserir(dados){
   const reg = Object.assign({conversa_id: atual.id, autor_id: eu.id, autor_nome: perfis[eu.id].nome}, dados);
+  if (reg.tipo !== "sistema"){
+    if (reg.texto) reg.texto = await cifrarTexto(atual, reg.texto);
+    if (reg.arquivo_nome) reg.arquivo_nome = await cifrarTexto(atual, reg.arquivo_nome);
+  }
   if (respondendo) reg.resposta_id = respondendo.id;
   cancelarResposta();
   const { error } = await sb.from("zeca_mensagens").insert(reg);
@@ -973,8 +1060,9 @@ async function subirArquivo(f, legenda){
   if (f.size > 50*1024*1024){ toast("Arquivo acima de 50 MB."); return; }
   toast("Enviando " + (f.name || "arquivo") + "…");
   const nome = (f.name || ("foto-" + Date.now() + ".jpg")).replace(/[^\w.\-() ]+/g,"_");
-  const path = `${atual.id}/${Date.now()}-${nome}`;
-  const up = await sb.storage.from("zeca-anexos").upload(path, f, {contentType: f.type || "application/octet-stream"});
+  const {dados, versao} = await cifrarBytes(atual, await f.arrayBuffer());
+  const path = `${atual.id}/${Date.now()}-arquivo` + (versao ? `-v${versao}.e2e` : `-${nome}`);
+  const up = await sb.storage.from("zeca-anexos").upload(path, dados, {contentType: versao ? "application/octet-stream" : (f.type || "application/octet-stream")});
   if (up.error){ toast("Não subiu o arquivo."); return; }
   await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome, arquivo_mime:f.type || "", texto: legenda || null});
 }
@@ -1036,8 +1124,9 @@ async function abrirRecado(){
     stream.getTracks().forEach(t => t.stop()); tela.remove();
     toast("Enviando recado…");
     const ext = mime.includes("mp4") ? "mp4" : "webm";
-    const path = `${atual.id}/${Date.now()}-recado.${ext}`;
-    const up = await sb.storage.from("zeca-anexos").upload(path, blob, {contentType: mime});
+    const {dados, versao} = await cifrarBytes(atual, await blob.arrayBuffer());
+    const path = `${atual.id}/${Date.now()}-recado` + (versao ? `-v${versao}.e2e` : `.${ext}`);
+    const up = await sb.storage.from("zeca-anexos").upload(path, dados, {contentType: versao ? "application/octet-stream" : mime});
     if (up.error){ toast("Não subiu o recado."); return; }
     await inserir({tipo:"recado", arquivo_path:path, arquivo_nome:"recado." + ext, arquivo_mime:mime});
   }
@@ -1069,8 +1158,9 @@ function pararGravacao(enviar){
     if (!enviar || Date.now() - iniGrav < 800) return;
     const mime = (g.mimeType || "audio/webm").split(";")[0];
     const ext = mime.includes("mp4") ? "m4a" : "webm";
-    const path = `${atual.id}/${Date.now()}-audio.${ext}`;
-    const up = await sb.storage.from("zeca-anexos").upload(path, new Blob(pedacos, {type: mime}), {contentType: mime});
+    const {dados, versao} = await cifrarBytes(atual, await new Blob(pedacos, {type: mime}).arrayBuffer());
+    const path = `${atual.id}/${Date.now()}-audio` + (versao ? `-v${versao}.e2e` : `.${ext}`);
+    const up = await sb.storage.from("zeca-anexos").upload(path, dados, {contentType: versao ? "application/octet-stream" : mime});
     if (up.error){ toast("Não subiu o áudio."); return; }
     if (await inserir({tipo:"audio", arquivo_path:path, arquivo_nome:"audio." + ext, arquivo_mime:mime}) && atual.zeca && atual.tipo === "individual") mostrarDigitando();
   };
@@ -1208,8 +1298,8 @@ function refazerTiques(){ $("msgs").querySelectorAll(".lin.eu").forEach(l => { c
 function assinar(){
   if (canal) sb.removeChannel(canal);
   canal = sb.channel("zeca-" + eu.id)
-    .on("postgres_changes", {event:"INSERT", schema:"public", table:"zeca_mensagens"}, p => {
-      const m = p.new;
+    .on("postgres_changes", {event:"INSERT", schema:"public", table:"zeca_mensagens"}, async p => {
+      const m = atual && p.new.conversa_id === atual.id ? await abrirMsg(atual, p.new) : p.new;
       if (m.autor_id !== eu.id && m.tipo !== "sistema") tocarAviso();
       if (atual && m.conversa_id === atual.id && !$("t-chat").hidden){
         if (msgsAtual.some(x => x.id === m.id)) return;
@@ -1223,8 +1313,8 @@ function assinar(){
         rolar(m.autor_id === eu.id); if (!document.hidden) marcarLido();
       } else atualizarLista();
     })
-    .on("postgres_changes", {event:"UPDATE", schema:"public", table:"zeca_mensagens"}, p => {
-      const m = p.new; if (!atual || m.conversa_id !== atual.id || $("t-chat").hidden){ atualizarLista(); return; }
+    .on("postgres_changes", {event:"UPDATE", schema:"public", table:"zeca_mensagens"}, async p => {
+      const m = atual && p.new.conversa_id === atual.id ? await abrirMsg(atual, p.new) : p.new; if (!atual || m.conversa_id !== atual.id || $("t-chat").hidden){ atualizarLista(); return; }
       const i = msgsAtual.findIndex(x => x.id === m.id); if (i < 0) return; msgsAtual[i] = m;
       const velho = $("msgs").querySelector(`.lin[data-id="${m.id}"]`);
       if (velho){ const novo = linha(m, msgsAtual[i-1]); novo.className = velho.className; velho.replaceWith(novo); }
@@ -1265,6 +1355,7 @@ async function individual(alvo){
   if (error){ toast("Não consegui criar a conversa."); return; }
   const mems = [{conversa_id:c.id, perfil_id:eu.id}]; if (alvo !== "zeca") mems.push({conversa_id:c.id, perfil_id:alvo});
   await sb.from("zeca_membros").insert(mems);
+  await criarCK(c);
   await carregarConversas(); abrir(c.id);
 }
 function novoGrupo(){
@@ -1281,6 +1372,7 @@ function novoGrupo(){
     const { data: c, error } = await sb.from("zeca_conversas").insert({tipo:"grupo", nome, zeca: $("g-zeca").checked, criado_por: eu.id}).select().single();
     if (error){ toast("Não consegui criar o grupo."); return; }
     await sb.from("zeca_membros").insert([eu.id, ...sel].map(p => ({conversa_id:c.id, perfil_id:p})));
+    await criarCK(c);
     await sb.from("zeca_mensagens").insert({conversa_id:c.id, autor_id:eu.id, autor_nome:perfis[eu.id].nome, tipo:"sistema", texto:`${perfis[eu.id].nome} criou o grupo "${nome}"`});
     fecharFolha(); await carregarConversas(); abrir(c.id);
   };
@@ -1306,6 +1398,7 @@ function infoConversa(){
     folha(`<h3>Adicionar ao grupo</h3>${fora.map(p => `<button class="op" type="button" data-add="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b></span></button>`).join("")}`);
     $("folha-cx").querySelectorAll("[data-add]").forEach(b => b.onclick = async () => {
       await sb.from("zeca_membros").insert({conversa_id:c.id, perfil_id:b.dataset.add});
+      await repararCK(c);
       await sb.from("zeca_mensagens").insert({conversa_id:c.id, autor_id:eu.id, autor_nome:perfis[eu.id].nome, tipo:"sistema", texto:`${perfis[eu.id].nome} adicionou ${perfis[b.dataset.add].nome}`});
       fecharFolha(); await carregarConversas(); abrir(c.id);
     });
@@ -1319,7 +1412,7 @@ function infoConversa(){
 }
 $("c-tit").onclick = infoConversa; $("c-av").onclick = infoConversa;
 $("b-cmenu").onclick = e => menuGeral(e, [["Dados da conversa", infoConversa], ["Voltar para as conversas", () => $("b-voltar").click()]]);
-$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small><div class="assina" style="margin-top:14px"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div></div>`)], ["Sair", sair]]);
+$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["PIN de segurança", trocarPin], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small><div class="assina" style="margin-top:14px"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div></div>`)], ["Sair", sair]]);
 function menuGeral(e, ops){
   e.stopPropagation(); fecharMenu();
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -1528,7 +1621,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-23a";
+const VERSAO_APP = "2026-09-23b";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
@@ -1576,6 +1669,219 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instal
 $("b-instalar").onclick = async () => { if (!instalarEvt) return; instalarEvt.prompt(); await instalarEvt.userChoice; instalarEvt = null; $("aviso-instalar").hidden = true; };
 navigator.serviceWorker && navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.abrir) abrir(e.data.abrir); });
 
+// ================= criptografia de ponta a ponta (22/09/2026) =================
+// Cada pessoa tem uma chave (ECDH P-256) que vive no aparelho. Cada conversa tem uma chave AES-GCM
+// embrulhada para cada participante (e para o Zeca, quando ele está na conversa). O servidor guarda
+// só texto embaralhado: nem a Cerrado nem o fornecedor do banco conseguem ler.
+const FN_COFRE = SUPA_URL + "/functions/v1/prosa-cofre";
+const SAL0 = new Uint8Array(32);
+const bin64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const de64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const utf8 = s => new TextEncoder().encode(s);
+let minhaChave = null;            // {priv: CryptoKey, pub: string}
+const CKS = new Map();            // conversa_id -> {versao, chave}
+const PUBS = new Map();           // dono -> CryptoKey pública
+
+// ---- guarda a chave privada no próprio aparelho (IndexedDB)
+function idb(){
+  return new Promise((ok, erro) => {
+    const r = indexedDB.open("prosa-cofre", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("chaves");
+    r.onsuccess = () => ok(r.result); r.onerror = () => erro(r.error);
+  });
+}
+async function idbPor(acao, chave, valor){
+  const db = await idb();
+  return new Promise((ok, erro) => {
+    const t = db.transaction("chaves", acao === "ler" ? "readonly" : "readwrite").objectStore("chaves");
+    const p = acao === "ler" ? t.get(chave) : acao === "apagar" ? t.delete(chave) : t.put(valor, chave);
+    p.onsuccess = () => ok(p.result); p.onerror = () => erro(p.error);
+  });
+}
+
+// ---- PIN: PBKDF2 → verificador (vai ao servidor) e chave que abre a cópia (fica aqui)
+async function doPin(pin, saltB64){
+  const salt = saltB64 ? de64(saltB64) : crypto.getRandomValues(new Uint8Array(16));
+  const base = await crypto.subtle.importKey("raw", utf8(pin), "PBKDF2", false, ["deriveBits"]);
+  const k1 = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2", salt, iterations:310000, hash:"SHA-256"}, base, 256));
+  const ver = bin64(await crypto.subtle.digest("SHA-256", new Uint8Array([...k1, ...utf8("prosa-verificador")])));
+  return {salt: bin64(salt), k1, verificador: ver};
+}
+async function chaveBackup(k1, pepper){
+  const base = await crypto.subtle.importKey("raw", new Uint8Array([...k1, ...de64(pepper)]), "HKDF", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"HKDF", hash:"SHA-256", salt: SAL0, info: utf8("prosa-backup")}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function cofre(corpo){
+  const { data: { session } } = await sb.auth.getSession();
+  const r = await fetch(FN_COFRE, {method:"POST", headers:{"Content-Type":"application/json", apikey: SUPA_ANON,
+    Authorization: "Bearer " + (session ? session.access_token : SUPA_ANON)}, body: JSON.stringify(corpo)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.erro || "Falha no cofre.");
+  return j;
+}
+
+// ---- identidade: cria no 1º acesso (pede PIN) ou recupera num aparelho novo (pede PIN)
+async function garantirIdentidade(){
+  const [{ data: pubLinha }, { data: bkp }] = await Promise.all([
+    sb.from("zeca_chaves").select("chave_pub").eq("dono", eu.id).maybeSingle(),
+    sb.from("zeca_backup").select("*").eq("perfil_id", eu.id).maybeSingle()]);
+  const local = await idbPor("ler", "priv:" + eu.id).catch(() => null);
+  if (pubLinha && local){ minhaChave = {priv: local, pub: pubLinha.chave_pub}; return true; }
+  if (!pubLinha) return await telaPin("criar");
+  if (!bkp) return await telaPin("recomecar", "A cópia da sua chave não está no servidor. Crie uma chave nova (as conversas antigas ficam ilegíveis).");
+  return await telaPin("abrir", null, bkp);
+}
+async function criarIdentidade(pin){
+  const par = await crypto.subtle.generateKey({name:"ECDH", namedCurve:"P-256"}, true, ["deriveBits"]);
+  const pkcs8 = await crypto.subtle.exportKey("pkcs8", par.privateKey);
+  const pub = bin64(await crypto.subtle.exportKey("raw", par.publicKey));
+  const {salt, k1, verificador} = await doPin(pin);
+  const { pepper } = await cofre({acao:"guardar", verificador});
+  const bk = await chaveBackup(k1, pepper);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, bk, pkcs8);
+  const e1 = await sb.from("zeca_chaves").upsert({dono: eu.id, chave_pub: pub});
+  const e2 = await sb.from("zeca_backup").upsert({perfil_id: eu.id, salt, iv: bin64(iv), ct: bin64(ct)});
+  if (e1.error || e2.error) throw new Error("Não consegui guardar a chave.");
+  const priv = await crypto.subtle.importKey("pkcs8", pkcs8, {name:"ECDH", namedCurve:"P-256"}, false, ["deriveBits"]);
+  await idbPor("gravar", "priv:" + eu.id, priv);
+  minhaChave = {priv, pub};
+}
+async function recuperarIdentidade(pin, bkp){
+  const {k1, verificador} = await doPin(pin, bkp.salt);
+  const { pepper } = await cofre({acao:"abrir", verificador});
+  const bk = await chaveBackup(k1, pepper);
+  let pkcs8;
+  try { pkcs8 = await crypto.subtle.decrypt({name:"AES-GCM", iv: de64(bkp.iv)}, bk, de64(bkp.ct)); }
+  catch(e){ throw new Error("PIN errado."); }
+  const priv = await crypto.subtle.importKey("pkcs8", pkcs8, {name:"ECDH", namedCurve:"P-256"}, false, ["deriveBits"]);
+  await idbPor("gravar", "priv:" + eu.id, priv);
+  const { data } = await sb.from("zeca_chaves").select("chave_pub").eq("dono", eu.id).maybeSingle();
+  minhaChave = {priv, pub: data ? data.chave_pub : null};
+}
+
+// ---- chave da conversa: uma AES por conversa, embrulhada para cada participante
+async function pubDe(dono){
+  if (PUBS.has(dono)) return PUBS.get(dono);
+  const { data } = await sb.from("zeca_chaves").select("chave_pub").eq("dono", dono).maybeSingle();
+  if (!data) return null;
+  const k = await crypto.subtle.importKey("raw", de64(data.chave_pub), {name:"ECDH", namedCurve:"P-256"}, false, []);
+  PUBS.set(dono, k); return k;
+}
+async function kek(privada, publica){
+  const bits = await crypto.subtle.deriveBits({name:"ECDH", public: publica}, privada, 256);
+  const base = await crypto.subtle.importKey("raw", bits, "HKDF", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"HKDF", hash:"SHA-256", salt: SAL0, info: utf8("prosa-ck-v1")}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function embrulhar(ck, dono){
+  const pub = await pubDe(dono); if (!pub) return null;
+  const efem = await crypto.subtle.generateKey({name:"ECDH", namedCurve:"P-256"}, true, ["deriveBits"]);
+  const k = await kek(efem.privateKey, pub);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const bruta = await crypto.subtle.exportKey("raw", ck);
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, k, bruta);
+  return {epk: bin64(await crypto.subtle.exportKey("raw", efem.publicKey)), iv: bin64(iv), ct: bin64(ct)};
+}
+async function desembrulhar(linha){
+  const epk = await crypto.subtle.importKey("raw", de64(linha.epk), {name:"ECDH", namedCurve:"P-256"}, false, []);
+  const k = await kek(minhaChave.priv, epk);
+  const bruta = await crypto.subtle.decrypt({name:"AES-GCM", iv: de64(linha.iv)}, k, de64(linha.ct));
+  return crypto.subtle.importKey("raw", bruta, {name:"AES-GCM", length:256}, true, ["encrypt","decrypt"]);
+}
+async function donosDaConversa(conv){
+  const { data: mems } = await sb.from("zeca_membros").select("perfil_id").eq("conversa_id", conv.id);
+  const donos = (mems || []).map(m => m.perfil_id);
+  if (conv.zeca) donos.push("zeca");
+  return [...new Set(donos)];
+}
+async function criarCK(conv){
+  const ck = await crypto.subtle.generateKey({name:"AES-GCM", length:256}, true, ["encrypt","decrypt"]);
+  const linhas = [];
+  for (const dono of await donosDaConversa(conv)){
+    const e = await embrulhar(ck, dono);
+    if (e) linhas.push({conversa_id: conv.id, versao: 1, dono, ...e});
+  }
+  if (linhas.length) await sb.from("zeca_conv_chaves").insert(linhas);
+  CKS.set(conv.id, {versao: 1, chave: ck});
+  return CKS.get(conv.id);
+}
+async function ckDaConversa(conv, versao){
+  const g = CKS.get(conv.id);
+  if (g && (!versao || g.versao === versao)) return g;
+  const { data } = await sb.from("zeca_conv_chaves").select("*").eq("conversa_id", conv.id).eq("dono", eu.id)
+    .order("versao", {ascending:false});
+  const linha = versao ? (data || []).find(x => x.versao === versao) : (data || [])[0];
+  if (!linha){
+    if (versao) return null;                       // mensagem de uma chave que ainda não tenho
+    const { count } = await sb.from("zeca_conv_chaves").select("conversa_id", {count:"exact", head:true}).eq("conversa_id", conv.id);
+    if (count) return null;                        // a conversa já tem chave, mas ninguém embrulhou para mim ainda
+    return await criarCK(conv);                    // conversa antiga, sem chave nenhuma: cria agora
+  }
+  const item = {versao: linha.versao, chave: await desembrulhar(linha)};
+  CKS.set(conv.id, item);
+  return item;
+}
+// quem entrou depois (ou trocou de chave) ganha a chave da conversa na primeira vez que alguém abre
+async function repararCK(conv){
+  try {
+    const g = await ckDaConversa(conv); if (!g) return;
+    const { data } = await sb.from("zeca_conv_chaves").select("dono").eq("conversa_id", conv.id).eq("versao", g.versao);
+    const tem = new Set((data || []).map(x => x.dono));
+    const faltam = (await donosDaConversa(conv)).filter(d => !tem.has(d));
+    const linhas = [];
+    for (const dono of faltam){
+      const e = await embrulhar(g.chave, dono);
+      if (e) linhas.push({conversa_id: conv.id, versao: g.versao, dono, ...e});
+    }
+    if (linhas.length) await sb.from("zeca_conv_chaves").insert(linhas);
+  } catch(e){}
+}
+
+// ---- cifrar e decifrar texto e arquivos
+function eCifrado(t){ return typeof t === "string" && t.startsWith("e2e1:"); }
+async function cifrarTexto(conv, texto){
+  if (!texto) return texto;
+  const g = await ckDaConversa(conv); if (!g) return texto;
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv, additionalData: utf8(conv.id)}, g.chave, utf8(texto));
+  return `e2e1:${g.versao}:${bin64(iv)}:${bin64(ct)}`;
+}
+async function decifrarTexto(conv, txt){
+  if (!eCifrado(txt)) return txt;
+  const [, versao, iv, ct] = txt.split(":");
+  try {
+    const g = await ckDaConversa(conv, Number(versao)); if (!g) return null;
+    const bruto = await crypto.subtle.decrypt({name:"AES-GCM", iv: de64(iv), additionalData: utf8(conv.id)}, g.chave, de64(ct));
+    return new TextDecoder().decode(bruto);
+  } catch(e){ return null; }
+}
+async function cifrarBytes(conv, dados){
+  const g = await ckDaConversa(conv); if (!g) return {dados, versao: 0};
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv, additionalData: utf8(conv.id)}, g.chave, dados);
+  return {dados: new Blob([iv, ct]), versao: g.versao};
+}
+async function decifrarBytes(conv, buf, versao){
+  const g = await ckDaConversa(conv, versao); if (!g) throw new Error("sem chave");
+  const b = new Uint8Array(buf);
+  return crypto.subtle.decrypt({name:"AES-GCM", iv: b.slice(0, 12), additionalData: utf8(conv.id)}, g.chave, b.slice(12));
+}
+function versaoDoArquivo(path){ const m = /-v(\d+)\.e2e$/.exec(path || ""); return m ? Number(m[1]) : null; }
+// mensagem pronta para a tela (texto, nome do arquivo e botões já abertos)
+async function abrirMsg(conv, m){
+  if (!m || m.apagada || m.tipo === "sistema") return m;
+  const precisa = eCifrado(m.texto) || eCifrado(m.arquivo_nome) || (m.botoes || []).some(eCifrado);
+  if (!precisa) return m;
+  const copia = Object.assign({}, m);
+  if (eCifrado(m.texto)){ const t = await decifrarTexto(conv, m.texto); copia.texto = t === null ? null : t; copia._sem_chave = t === null; }
+  if (eCifrado(m.arquivo_nome)){ const n = await decifrarTexto(conv, m.arquivo_nome); copia.arquivo_nome = n || "arquivo"; }
+  if ((m.botoes || []).some(eCifrado)){
+    const b = await decifrarTexto(conv, m.botoes[0]);
+    copia.botoes = b ? JSON.parse(b) : null;
+  }
+  return copia;
+}
+
 // ---------------- início
 async function iniciar(){
   const { data: { session } } = await sb.auth.getSession();
@@ -1587,6 +1893,8 @@ async function iniciar(){
   await depoisDoLogin();
 }
 async function depoisDoLogin(){
+  try { if (!(await garantirIdentidade())) return; }
+  catch(e){ toast("Não consegui preparar a criptografia: " + (e.message || "")); }
   await carregarConversas(); desenharLista(); mostrar("t-lista");
   assinar(); registrarSW(); conferirAvisos();
   if (instalarEvt) $("aviso-instalar").hidden = false;
