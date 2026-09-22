@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<title>Zeca</title>
+<title>Prosa</title>
 <meta name="theme-color" content="#2E5B3D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Zeca">
+<meta name="apple-mobile-web-app-title" content="Prosa">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
@@ -52,7 +52,7 @@ button{cursor:pointer}
 .av.grupo{background:#BCC7CE;color:#fff}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .login{padding:calc(var(--safe-t) + 44px) 24px 24px;display:grid;gap:18px;align-content:start;max-width:420px;margin:0 auto;width:100%}
-.login .logo{width:96px;height:96px;border-radius:50%;background:#F7F5EE url(zeca.png) center/cover;justify-self:center;box-shadow:0 0 0 3px #E9B84A}
+.login .logo{width:104px;height:104px;border-radius:24px;background:url(icon-512.png) center/cover;justify-self:center;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .login h2{text-align:center;margin:0;font-size:24px;font-weight:600}
 .login p{text-align:center;margin:0;color:var(--muted);font-size:15px}
 .gente{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -187,9 +187,10 @@ button{cursor:pointer}
 .visor img{max-width:100%;max-height:100%}
 .visor button{position:absolute;top:calc(var(--safe-t) + 10px);left:10px;color:#fff}
 .fotoops{display:flex;gap:26px;padding:6px 8px 4px}
-.fotoops button{border:0;background:none;display:grid;justify-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.fotoops button,.fotoops label{position:relative;cursor:pointer;border:0;background:none;display:grid;justify-items:center;gap:8px;font-size:14px;color:var(--ink)}
 .fotoops .cc{width:58px;height:58px;border-radius:50%;border:1px solid var(--line);color:var(--accent2);display:grid;place-items:center}
 .fotoops .cc.perigo{color:var(--danger)}
+.alvo{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
 .fotoedit{position:relative;border:0;background:none;padding:0;border-radius:50%}
 .fotoedit .av.xl{width:160px;height:160px;font-size:60px}
 .fotoedit .cam{position:absolute;right:4px;bottom:4px;width:46px;height:46px;border-radius:50%;background:var(--accent2);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
@@ -232,13 +233,14 @@ button{cursor:pointer}
   <symbol id="i-fig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 4h16v10l-6 6H4z"/><path d="M14 20v-6h6"/></g></symbol>
   <symbol id="i-galeria" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
   <symbol id="i-lapis" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 2.5h8l4 4V21.5H6z"/><path d="M14 2.5v4h4M9 12h6M9 16h6"/></g></symbol>
   <symbol id="i-t2" viewBox="0 0 16 11"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M.8 5.8 4.3 9.3 10.8 1.8M7.2 8.4l.9.9 6.5-7.5"/></symbol>
 </svg>
 
 <section class="tela" id="t-login" hidden>
   <div class="scroll"><div class="login">
-    <div class="logo" role="img" aria-label="Zeca"></div>
-    <h2>Zeca</h2>
+    <div class="logo" role="img" aria-label="Prosa"></div>
+    <h2>Prosa</h2>
     <p>Conversas da equipe da Cerrado Consultoria</p>
     <div class="gente" id="gente"></div>
     <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
@@ -266,7 +268,7 @@ button{cursor:pointer}
 
 <section class="tela" id="t-lista" hidden>
   <div class="hdr">
-    <h1>Zeca</h1>
+    <h1>Prosa</h1>
     <button class="ib" id="b-menu" type="button" aria-label="Mais opções"><svg><use href="#i-mais"/></svg></button>
   </div>
   <div class="scroll" id="lista-sc">
@@ -314,13 +316,9 @@ button{cursor:pointer}
     </div>
     <div class="grade" id="grade"></div>
   </div>
-  <input type="file" id="arquivo" hidden>
-  <input type="file" id="foto-cam" accept="image/*" capture="environment" hidden>
 </section>
 
 <div class="folha" id="folha" hidden><div class="cx" id="folha-cx"></div></div>
-<input type="file" id="foto-in" accept="image/*" hidden>
-<input type="file" id="foto-cam-perfil" accept="image/*" capture="user" hidden>
 
 <script>
 const SUPA_URL = "https://hadbqjgfqfokutltiqra.supabase.co", SUPA_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w", VAPID = "BKrWAf-4BN-hdC07T53lnevpRPoxRZH3DW7-qMKNaDXCgHM11JGAVHmUYiiNTg1ihACxkFMmtp1NAz6TtUhb1lU";
@@ -488,7 +486,7 @@ function desenharLista(){
   }
   const total = conversas.reduce((a,c) => a + c.naoLidas, 0);
   try { if (navigator.setAppBadge) total ? navigator.setAppBadge(total) : navigator.clearAppBadge(); } catch(e){}
-  document.title = total ? `(${total}) Zeca` : "Zeca";
+  document.title = total ? `(${total}) Prosa` : "Prosa";
 }
 $("q").addEventListener("input", desenharLista);
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filtro = b.dataset.f; document.querySelectorAll(".chips button").forEach(o => o.setAttribute("aria-pressed", o === b)); desenharLista(); });
@@ -666,10 +664,20 @@ async function subirArquivo(f, legenda){
   if (up.error){ toast("Não subiu o arquivo."); return; }
   await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome, arquivo_mime:f.type || "", texto: legenda || null});
 }
-$("b-anexo").onclick = () => $("arquivo").click();
-$("b-cam").onclick = () => $("foto-cam").click();
-$("arquivo").onchange = () => { const f = $("arquivo").files[0]; $("arquivo").value = ""; subirArquivo(f); };
-$("foto-cam").onchange = () => { const f = $("foto-cam").files[0]; $("foto-cam").value = ""; subirArquivo(f); };
+function botaoArquivo(rotulo, icone, aceita, captura){
+  return `<label><span class="cc"><svg width="26" height="26"><use href="#${icone}"/></svg></span>${rotulo}<input type="file" class="alvo"${aceita ? ` accept="${aceita}"` : ""}${captura ? ` capture="${captura}"` : ""}></label>`;
+}
+$("b-anexo").onclick = () => {
+  fecharPainel();
+  const d = document.createElement("div"); d.className = "folha";
+  d.innerHTML = `<div class="cx"><div class="fotoops">${botaoArquivo("Documento", "i-doc", "", "")}${botaoArquivo("Galeria", "i-galeria", "image/*", "")}${botaoArquivo("Câmera", "i-camera", "image/*", "environment")}</div></div>`;
+  d.onclick = e => { if (e.target === d) d.remove(); };
+  d.querySelectorAll("input[type=file]").forEach(i => i.onchange = () => { const f = i.files[0]; d.remove(); subirArquivo(f); });
+  document.body.appendChild(d);
+};
+$("b-cam").onclick = null;
+$("b-cam").outerHTML = `<label class="ib" id="b-cam" aria-label="Foto" style="position:relative;cursor:pointer"><svg><use href="#i-camera"/></svg><input type="file" class="alvo" accept="image/*" capture="environment"></label>`;
+$("b-cam").querySelector("input").onchange = e => { const f = e.target.files[0]; e.target.value = ""; subirArquivo(f); };
 
 // ---------------- áudio (toque no microfone grava; toque no enviar manda; lixeira descarta)
 let gravador = null, pedacos = [], tGrav = null, iniGrav = 0;
@@ -859,19 +867,15 @@ function escolherFoto(cb, prefixo, temFoto){
   fotoCb = cb; fotoPrefixo = prefixo;
   const d = document.createElement("div"); d.className = "folha"; d.id = "folha-foto";
   d.innerHTML = `<div class="cx"><h3>Foto</h3><div class="fotoops">
-    <button type="button" data-o="cam"><span class="cc"><svg width="26" height="26"><use href="#i-camera"/></svg></span>Câmera</button>
-    <button type="button" data-o="gal"><span class="cc"><svg width="26" height="26"><use href="#i-galeria"/></svg></span>Galeria</button>
+    ${botaoArquivo("Câmera", "i-camera", "image/*", "user")}
+    ${botaoArquivo("Galeria", "i-galeria", "image/*", "")}
     ${temFoto ? `<button type="button" data-o="rem"><span class="cc perigo"><svg width="26" height="26"><use href="#i-lixo"/></svg></span>Remover</button>` : ""}</div></div>`;
   d.onclick = e => { if (e.target === d) d.remove(); };
-  d.querySelectorAll("[data-o]").forEach(b => b.onclick = async () => {
-    d.remove();
-    if (b.dataset.o === "cam") $("foto-cam-perfil").click();
-    else if (b.dataset.o === "gal") $("foto-in").click();
-    else if (confirm("Remover a foto?")) { await fotoCb(null); toast("Foto removida."); }
-  });
+  d.querySelectorAll("input[type=file]").forEach(i => i.onchange = () => { const f = i.files[0]; d.remove(); if (f && fotoCb) recortar(f); });
+  const rem = d.querySelector('[data-o="rem"]');
+  if (rem) rem.onclick = async () => { d.remove(); if (confirm("Remover a foto?")) { await fotoCb(null); toast("Foto removida."); } };
   document.body.appendChild(d);
 }
-["foto-in","foto-cam-perfil"].forEach(id => $(id).onchange = () => { const f = $(id).files[0]; $(id).value = ""; if (f && fotoCb) recortar(f); });
 
 function recortar(arquivo){
   const url = URL.createObjectURL(arquivo);
