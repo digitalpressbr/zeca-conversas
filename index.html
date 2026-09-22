@@ -55,6 +55,10 @@ button{cursor:pointer}
 .login .logo{width:104px;height:104px;border-radius:24px;background:url(icon-512.png) center/cover;justify-self:center;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .login h2{text-align:center;margin:0;font-size:24px;font-weight:600}
 .login p{text-align:center;margin:0;color:var(--muted);font-size:15px}
+.login .lema{font-size:15.5px;line-height:1.4;max-width:300px;margin:0 auto}
+.assina{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:26px;color:var(--muted);font-size:12.5px;line-height:1.3}
+.assina img{border-radius:50%}
+.assina b{color:var(--ink);font-weight:600;font-size:13px}
 .gente{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .gente button{display:grid;justify-items:center;gap:8px;padding:14px 8px;border-radius:14px;border:1px solid var(--line);background:var(--bg)}
 .gente button[aria-pressed="true"]{border:2px solid var(--accent);background:var(--chip)}
@@ -286,7 +290,7 @@ button{cursor:pointer}
   <div class="scroll"><div class="login">
     <div class="logo" role="img" aria-label="Prosa"></div>
     <h2>Prosa</h2>
-    <p>Conversas da Cerrado Consultoria</p>
+    <p class="lema">Prosa boa aproxima. Aqui a sua equipe fala, resolve e segue o dia.</p>
     <div id="lg-cel" style="display:grid;gap:14px">
       <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 99999-9999"></div>
       <button class="btn" id="b-codigo" type="button">Receber código no WhatsApp</button>
@@ -301,6 +305,7 @@ button{cursor:pointer}
       <button class="btn sec" id="b-voltar-cel" type="button">Entrar pelo celular</button>
     </div>
     <div class="erro" id="erro-login" role="alert"></div>
+    <div class="assina"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div>
   </div></div>
 </section>
 
@@ -1291,7 +1296,7 @@ function infoConversa(){
 }
 $("c-tit").onclick = infoConversa; $("c-av").onclick = infoConversa;
 $("b-cmenu").onclick = e => menuGeral(e, [["Dados da conversa", infoConversa], ["Voltar para as conversas", () => $("b-voltar").click()]]);
-$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small></div>`)], ["Sair", sair]]);
+$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small><div class="assina" style="margin-top:14px"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div></div>`)], ["Sair", sair]]);
 function menuGeral(e, ops){
   e.stopPropagation(); fecharMenu();
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -1500,7 +1505,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22w";
+const VERSAO_APP = "2026-09-22x";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
