@@ -296,7 +296,7 @@ button{cursor:pointer}
     <h2>Prosa</h2>
     <p class="lema">Prosa boa aproxima. Aqui a sua equipe fala, resolve e segue o dia.</p>
     <div id="lg-cel" style="display:grid;gap:14px">
-      <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 99999-9999"></div>
+      <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(00) 99999-9999"></div>
       <button class="btn" id="b-codigo" type="button">Receber código no WhatsApp</button>
       <div class="fld" id="fld-cod" hidden><label for="cod">Código de 6 números</label><input id="cod" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
       <button class="btn" id="b-cel-entrar" type="button" hidden>Entrar</button>
@@ -489,6 +489,24 @@ async function chamarAcesso(corpo){
   if (!r.ok) throw new Error(j.erro || "Falha na conexão. Tente de novo.");
   return j;
 }
+// (00) 0 0000-0000 enquanto digita
+function formatarCelular(v){
+  const n = (v || "").replace(/\D/g, "").slice(0, 11);
+  if (n.length <= 2) return n.length ? "(" + n : "";
+  const meio = n.length <= 10 ? 4 : 5;
+  let t = "(" + n.slice(0, 2) + ") " + n.slice(2, 2 + meio);
+  if (n.length > 2 + meio) t += "-" + n.slice(2 + meio);
+  return t;
+}
+function ligarMascara(campo){
+  if (!campo) return;
+  campo.addEventListener("input", () => {
+    const fim = campo.selectionStart === campo.value.length;
+    campo.value = formatarCelular(campo.value);
+    if (fim) campo.selectionStart = campo.selectionEnd = campo.value.length;
+  });
+}
+ligarMascara($("cel"));
 $("b-eq").onclick = () => { $("lg-cel").hidden = true; $("lg-eq").hidden = false; $("erro-login").textContent = ""; };
 $("b-voltar-cel").onclick = () => { $("lg-eq").hidden = true; $("lg-cel").hidden = false; $("erro-login").textContent = ""; };
 $("b-codigo").onclick = async () => {
@@ -515,9 +533,10 @@ $("cod").addEventListener("input", () => { if ($("cod").value.replace(/\D/g, "")
 function adicionarPessoa(numero){
   folha(`<h3>Adicionar pessoa</h3>
     <div class="fld"><label for="ap-nome">Nome</label><input id="ap-nome" type="text" maxlength="60" placeholder="Nome da pessoa"></div>
-    <div class="fld"><label for="ap-cel">Celular com DDD</label><input id="ap-cel" type="tel" inputmode="tel" placeholder="(00) 99999-9999" value="${esc(numero || "")}"></div>
+    <div class="fld"><label for="ap-cel">Celular com DDD</label><input id="ap-cel" type="tel" inputmode="numeric" placeholder="(00) 99999-9999" value="${esc(numero || "")}"></div>
     <button class="btn" type="button" id="ap-ok">Convidar pelo WhatsApp</button>
     <p class="dica">A pessoa recebe no WhatsApp o link para instalar a Prosa. Para entrar, ela usa esse mesmo número e recebe um código.</p>`);
+  ligarMascara($("ap-cel"));
   $("ap-ok").onclick = async () => {
     $("ap-ok").disabled = true;
     try {
@@ -1509,7 +1528,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22z";
+const VERSAO_APP = "2026-09-23a";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
