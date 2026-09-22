@@ -156,12 +156,35 @@ button{cursor:pointer}
 .pilula textarea{flex:1;resize:none;max-height:130px;min-height:44px;border:0;background:transparent;padding:12px 4px;font-size:16.5px;line-height:1.3;outline:none;min-width:0}
 .redondo{width:48px;height:48px;border-radius:50%;background:var(--accent2);color:#fff;border:0;display:grid;place-items:center;flex:none}
 .gravando{flex:1;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:24px;padding:0 8px 0 6px;min-height:48px;color:var(--danger);font-weight:600}
-#g-trava{position:absolute;right:10px;bottom:calc(var(--safe-b) + 72px);width:44px;padding:10px 0;border-radius:22px;background:var(--bg);box-shadow:0 1px 6px rgba(0,0,0,.25);display:grid;justify-items:center;gap:4px;color:var(--muted);z-index:6}
+#g-trava{position:absolute;right:12px;bottom:calc(var(--safe-b) + 66px);width:46px;height:140px;padding:8px 0 10px;border-radius:23px;background:var(--bg);box-shadow:0 1px 8px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:var(--muted);z-index:6}
+#g-trava .seta-sobe{animation:sobe 1.1s ease-in-out infinite}
+#g-cad{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;transition:transform .05s}
+#g-cad.pronto{background:var(--accent2);color:#fff}
+@keyframes sobe{0%,100%{transform:rotate(180deg) translateY(0);opacity:.5}50%{transform:rotate(180deg) translateY(6px);opacity:1}}
 .redondo.grav{transform:scale(1.35);transition:transform .15s}
 .baixo{position:relative}
 #fmt-barra{display:flex;gap:4px;margin:0 0 6px 8px;width:max-content;background:var(--bg);border-radius:18px;padding:4px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 #fmt-barra button{width:40px;height:34px;border:0;border-radius:14px;background:transparent;font-size:17px;color:var(--ink)}
 #fmt-barra button:active{background:var(--hover)}
+.recado-tela{position:fixed;inset:0;z-index:80;background:#0B141A;color:#fff;display:flex;flex-direction:column}
+.rv-area{flex:1;display:grid;place-items:center;align-content:center;gap:14px}
+.rv-circ{position:relative;width:min(78vw,380px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000}
+.rv-circ video{width:100%;height:100%;object-fit:cover}
+.rv-anel{position:absolute;inset:0;transform:rotate(-90deg)}
+.rv-anel circle{fill:none;stroke:#25D366;stroke-width:3;stroke-dasharray:302;stroke-dashoffset:302}
+.rv-tempo{font-size:18px;font-weight:600}
+.rv-baixo{display:flex;justify-content:space-around;align-items:center;padding:14px 20px calc(var(--safe-b) + 22px)}
+.rv-baixo .ib{color:#fff}
+.rv-botao{width:74px;height:74px;border-radius:50%;border:5px solid #fff;background:#E53935}
+.rv-botao.on{border-radius:18px;transform:scale(.8);transition:all .15s}
+.recado{position:relative;width:200px;height:200px;border-radius:50%;overflow:hidden;background:#000;cursor:pointer}
+.recado video{width:100%;height:100%;object-fit:cover}
+.recado .rc-play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:rgba(0,0,0,.18)}
+.recado .rc-dur{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:12px;background:rgba(0,0,0,.45);color:#fff;border-radius:9px;padding:1px 7px}
+.m.rec{background:transparent!important;box-shadow:none;padding:0}
+.m.rec::before{display:none}
+.m.rec .meta{float:none;display:flex;background:rgba(0,0,0,.35);color:#fff;border-radius:9px;padding:1px 6px;width:max-content;margin:4px 0 0 auto;top:0}
+.vid{display:block;max-width:260px;width:100%;border-radius:6px;background:#000}
 .gravando .pt{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pisca 1s infinite}
 @keyframes pisca{50%{opacity:.2}}
 .painel{flex:none;height:300px;background:var(--panel);display:flex;flex-direction:column;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
@@ -253,6 +276,9 @@ button{cursor:pointer}
   <symbol id="i-lapis" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 2.5h8l4 4V21.5H6z"/><path d="M14 2.5v4h4M9 12h6M9 16h6"/></g></symbol>
   <symbol id="i-cadeado" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10.5 6-3.5v10l-6-3.5z"/></g></symbol>
+  <symbol id="i-recado" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="4" fill="currentColor"/></g></symbol>
+  <symbol id="i-girar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"/></g></symbol>
   <symbol id="i-t2" viewBox="0 0 16 11"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M.8 5.8 4.3 9.3 10.8 1.8M7.2 8.4l.9.9 6.5-7.5"/></symbol>
 </svg>
 
@@ -336,7 +362,7 @@ button{cursor:pointer}
         <button class="ib" type="button" id="b-cam" aria-label="Foto"><svg><use href="#i-camera"/></svg></button>
       </div>
       <div class="gravando" id="gravando" hidden><button class="ib" type="button" id="g-cancel" aria-label="Descartar áudio" style="color:var(--muted)"><svg><use href="#i-lixo"/></svg></button><span class="pt"></span><span id="g-tempo">0:00</span><span id="g-dica" style="margin-left:auto;margin-right:8px;color:var(--muted);font-weight:500;font-size:14px;transition:transform .05s">‹ deslize para cancelar</span></div>
-      <div id="g-trava" hidden aria-hidden="true"><svg width="20" height="20"><use href="#i-cadeado"/></svg><svg width="16" height="16" style="transform:rotate(180deg)"><use href="#i-desce"/></svg></div>
+      <div id="g-trava" hidden aria-hidden="true"><svg class="seta-sobe" width="18" height="18" style="transform:rotate(180deg)"><use href="#i-desce"/></svg><span id="g-cad"><svg width="22" height="22"><use href="#i-cadeado"/></svg></span></div>
       <button class="redondo" type="button" id="b-acao" aria-label="Gravar áudio"><svg width="24" height="24" id="b-acao-ic"><use href="#i-mic"/></svg></button>
     </form>
   </div>
@@ -550,7 +576,8 @@ async function carregarConversas(){
 }
 function descreve(u){
   if (u.apagada) return u.autor_id === eu.id ? "🚫 Você apagou esta mensagem" : "🚫 Esta mensagem foi apagada";
-  if (u.tipo === "arquivo") return (u.arquivo_mime||"").startsWith("image/") ? "📷 Foto" : "📄 " + (u.arquivo_nome||"Arquivo");
+  if (u.tipo === "arquivo") return (u.arquivo_mime||"").startsWith("image/") ? "📷 Foto" : (u.arquivo_mime||"").startsWith("video/") ? "🎬 Vídeo" : "📄 " + (u.arquivo_nome||"Arquivo");
+  if (u.tipo === "recado") return "🎥 Recado de vídeo";
   if (u.tipo === "audio") return "🎤 Áudio";
   if (u.tipo === "figurinha") return "💟 Figurinha";
   return textoLimpo(u.texto);
@@ -638,6 +665,13 @@ function linha(m, ant){
     const fo = fp ? `<span class="fo" style="background-image:url('${esc(fp)}')"></span>` : "";
     h += `<div class="aud" data-path="${esc(m.arquivo_path)}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="onda" aria-label="Posição do áudio"></span><small>0:00</small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
   }
+  else if (m.tipo === "recado"){
+    cls = "m rec";
+    h += `<div class="recado" data-path="${esc(m.arquivo_path)}"><video playsinline preload="metadata"></video><span class="rc-play"><svg width="40" height="40"><use href="#i-play"/></svg></span><span class="rc-dur"></span></div>${meta}`;
+  }
+  else if (m.tipo === "arquivo" && (m.arquivo_mime||"").startsWith("video/")){
+    h += `<video class="vid" data-path="${esc(m.arquivo_path)}" controls playsinline preload="metadata"></video><div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
+  }
   else if (m.tipo === "arquivo"){
     const ehImg = (m.arquivo_mime||"").startsWith("image/");
     const ext = ((m.arquivo_nome||"").split(".").pop()||"").toLowerCase();
@@ -662,6 +696,17 @@ function citaHtml(r){
 function irPara(id){ const el = $("msgs").querySelector(`.lin[data-id="${id}"]`); if (el){ el.scrollIntoView({block:"center", behavior:"smooth"}); el.animate([{background:"rgba(31,122,77,.22)"},{background:"transparent"}], {duration:1400}); } }
 async function urlAssinada(path){ const { data } = await sb.storage.from("zeca-anexos").createSignedUrl(path, 3600); return data ? data.signedUrl : null; }
 function ligarMidia(b){
+  b.querySelectorAll("video.vid[data-path]").forEach(async el => { const u = await urlAssinada(el.dataset.path); if (u) el.src = u; });
+  b.querySelectorAll(".recado").forEach(async el => {
+    const v = el.querySelector("video"), pl = el.querySelector(".rc-play"), du = el.querySelector(".rc-dur");
+    const u = await urlAssinada(el.dataset.path); if (!u) return; v.src = u;
+    v.onloadedmetadata = () => { if (isFinite(v.duration)) du.textContent = mmss(v.duration); };
+    v.onended = () => { pl.hidden = false; v.currentTime = 0; };
+    el.onclick = () => {
+      if (v.paused){ if (audioTocando){ audioTocando.pause(); } document.querySelectorAll(".recado video").forEach(o => o !== v && o.pause()); v.play(); pl.hidden = true; }
+      else { v.pause(); pl.hidden = false; }
+    };
+  });
   b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlAssinada(el.dataset.path); if (u){ el.src = u; el.onclick = () => visor(u); } });
   b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlAssinada(el.dataset.path); if (u) window.open(u, "_blank"); });
   b.querySelectorAll(".aud").forEach(el => {
@@ -869,8 +914,9 @@ $("b-acao").addEventListener("pointerdown", e => {
 $("b-acao").addEventListener("pointermove", e => {
   if (!segurando || travado) return;
   const dx = e.clientX - pX, dy = e.clientY - pY;
-  $("g-trava").style.transform = `translateY(${Math.min(0, dy)}px)`;
-  if (dy < -70){ travado = true; segurando = false; $("g-trava").hidden = true; $("g-dica").textContent = "Gravando…"; $("g-cancel").hidden = false; trocarBotao(); navigator.vibrate && navigator.vibrate(30); }
+  $("g-cad").style.transform = `translateY(${Math.max(-86, Math.min(0, dy))}px)`;
+  $("g-cad").classList.toggle("pronto", dy < -60);
+  if (dy < -86){ travado = true; segurando = false; $("g-trava").hidden = true; $("g-dica").textContent = "Gravando…"; $("g-cancel").hidden = false; trocarBotao(); navigator.vibrate && navigator.vibrate(30); }
   else if (dx < -110){ segurando = false; pararGravacao(false); toast("Áudio descartado"); }
   else $("g-dica").style.transform = `translateX(${Math.min(0, dx)}px)`;
 });
@@ -891,7 +937,7 @@ $("b-acao").onclick = () => {
 };
 async function subirArquivo(f, legenda){
   if (!f || !atual) return;
-  if (f.size > 25*1024*1024){ toast("Arquivo acima de 25 MB."); return; }
+  if (f.size > 50*1024*1024){ toast("Arquivo acima de 50 MB."); return; }
   toast("Enviando " + (f.name || "arquivo") + "…");
   const nome = (f.name || ("foto-" + Date.now() + ".jpg")).replace(/[^\w.\-() ]+/g,"_");
   const path = `${atual.id}/${Date.now()}-${nome}`;
@@ -911,8 +957,59 @@ $("b-anexo").onclick = () => {
   document.body.appendChild(d);
 };
 $("b-cam").onclick = null;
-$("b-cam").outerHTML = `<label class="ib" id="b-cam" aria-label="Foto" style="position:relative;cursor:pointer"><svg><use href="#i-camera"/></svg><input type="file" class="alvo" accept="image/*" capture="environment"></label>`;
-$("b-cam").querySelector("input").onchange = e => { const f = e.target.files[0]; e.target.value = ""; subirArquivo(f); };
+$("b-cam").onclick = () => {
+  fecharPainel();
+  const d = document.createElement("div"); d.className = "folha";
+  d.innerHTML = `<div class="cx"><h3>Câmera</h3><div class="fotoops">${botaoArquivo("Foto", "i-camera", "image/*", "environment")}${botaoArquivo("Vídeo", "i-video", "video/*", "environment")}<button type="button" id="b-recado"><span class="cc"><svg width="26" height="26"><use href="#i-recado"/></svg></span>Recado de vídeo</button></div></div>`;
+  d.onclick = e => { if (e.target === d) d.remove(); };
+  d.querySelectorAll("input[type=file]").forEach(i => i.onchange = () => { const f = i.files[0]; d.remove(); subirArquivo(f); });
+  d.querySelector("#b-recado").onclick = () => { d.remove(); abrirRecado(); };
+  document.body.appendChild(d);
+};
+
+// ---------------- recado de vídeo (como no WhatsApp): círculo, câmera da frente, até 60 s
+async function abrirRecado(){
+  if (!navigator.mediaDevices || !window.MediaRecorder){ toast("Este navegador não grava vídeo."); return; }
+  let frente = true, stream = null, rec = null, partes = [], t0 = 0, tim = null;
+  const tela = document.createElement("div"); tela.className = "recado-tela";
+  tela.innerHTML = `<div class="rc-topo"><button type="button" class="ib" data-sair aria-label="Fechar"><svg><use href="#i-x"/></svg></button><b>Recado de vídeo</b></div>
+    <div class="rv-area"><div class="rv-circ"><video autoplay muted playsinline></video><svg class="rv-anel" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div><span class="rv-tempo">0:00</span></div>
+    <div class="rv-baixo"><button type="button" class="ib" data-girar aria-label="Trocar câmera"><svg><use href="#i-girar"/></svg></button><button type="button" class="rv-botao" data-gravar aria-label="Gravar"></button><span style="width:42px"></span></div>`;
+  document.body.appendChild(tela);
+  const vid = tela.querySelector("video"), anel = tela.querySelector(".rv-anel circle"), tempo = tela.querySelector(".rv-tempo"), botao = tela.querySelector("[data-gravar]");
+  const ligar = async () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: frente ? "user" : "environment", width: {ideal: 640}, height: {ideal: 640}}, audio: true}); }
+    catch(e){ toast("Libere a câmera e o microfone para gravar."); fechar(); return; }
+    vid.srcObject = stream; vid.style.transform = frente ? "scaleX(-1)" : "";
+  };
+  const fechar = () => { clearInterval(tim); if (rec && rec.state !== "inactive") { rec.onstop = null; rec.stop(); } if (stream) stream.getTracks().forEach(t => t.stop()); tela.remove(); };
+  tela.querySelector("[data-sair]").onclick = fechar;
+  tela.querySelector("[data-girar]").onclick = () => { if (!rec) { frente = !frente; ligar(); } };
+  botao.onclick = () => {
+    if (!rec){
+      const tipo = MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" : (MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus") ? "video/webm;codecs=vp8,opus" : "");
+      rec = new MediaRecorder(stream, tipo ? {mimeType: tipo, videoBitsPerSecond: 900000} : undefined);
+      partes = []; rec.ondataavailable = e => { if (e.data.size) partes.push(e.data); };
+      rec.onstop = enviar; rec.start(); t0 = Date.now(); botao.classList.add("on");
+      tim = setInterval(() => { const seg = (Date.now() - t0) / 1000; tempo.textContent = mmss(seg); anel.style.strokeDashoffset = String(302 * (1 - Math.min(1, seg / 60))); if (seg >= 60) rec.stop(); }, 200);
+    } else if (rec.state === "recording") rec.stop();
+  };
+  async function enviar(){
+    clearInterval(tim);
+    const mime = (rec.mimeType || "video/webm").split(";")[0];
+    if (Date.now() - t0 < 1000){ toast("Recado muito curto."); fechar(); return; }
+    const blob = new Blob(partes, {type: mime});
+    stream.getTracks().forEach(t => t.stop()); tela.remove();
+    toast("Enviando recado…");
+    const ext = mime.includes("mp4") ? "mp4" : "webm";
+    const path = `${atual.id}/${Date.now()}-recado.${ext}`;
+    const up = await sb.storage.from("zeca-anexos").upload(path, blob, {contentType: mime});
+    if (up.error){ toast("Não subiu o recado."); return; }
+    await inserir({tipo:"recado", arquivo_path:path, arquivo_nome:"recado." + ext, arquivo_mime:mime});
+  }
+  ligar();
+}
 
 // ---------------- áudio (toque no microfone grava; toque no enviar manda; lixeira descarta)
 let gravador = null, pedacos = [], tGrav = null, iniGrav = 0;
@@ -926,7 +1023,7 @@ async function iniciarGravacao(){
   gravador.start(); iniGrav = Date.now();
   if (soltouAntes){ soltouAntes = false; pararGravacao(false); toast("Segure para gravar, solte para enviar"); return; }
   $("pilula").hidden = true; $("gravando").hidden = false; $("resp").hidden = true;
-  $("g-cancel").hidden = !travado; $("g-trava").hidden = travado; $("g-trava").style.transform = ""; $("g-dica").style.transform = "";
+  $("g-cancel").hidden = !travado; $("g-trava").hidden = travado; $("g-cad").style.transform = ""; $("g-cad").classList.remove("pronto"); $("g-dica").style.transform = "";
   $("g-dica").textContent = travado ? "Gravando…" : "‹ deslize para cancelar"; trocarBotao();
   tGrav = setInterval(() => $("g-tempo").textContent = mmss((Date.now() - iniGrav) / 1000), 300);
 }
@@ -1360,7 +1457,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22r";
+const VERSAO_APP = "2026-09-22s";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
