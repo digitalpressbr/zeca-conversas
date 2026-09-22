@@ -247,10 +247,20 @@ button{cursor:pointer}
   <div class="scroll"><div class="login">
     <div class="logo" role="img" aria-label="Prosa"></div>
     <h2>Prosa</h2>
-    <p>Conversas da equipe da Cerrado Consultoria</p>
-    <div class="gente" id="gente"></div>
-    <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
-    <button class="btn" id="entrar" type="button" disabled>Entrar</button>
+    <p>Conversas da Cerrado Consultoria</p>
+    <div id="lg-cel" style="display:grid;gap:14px">
+      <div class="fld"><label for="cel">Seu celular (com DDD)</label><input id="cel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(64) 98147-2081"></div>
+      <button class="btn" id="b-codigo" type="button">Receber código no WhatsApp</button>
+      <div class="fld" id="fld-cod" hidden><label for="cod">Código de 6 números</label><input id="cod" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+      <button class="btn" id="b-cel-entrar" type="button" hidden>Entrar</button>
+      <button class="btn sec" id="b-eq" type="button">Sou da equipe: entrar com nome e senha</button>
+    </div>
+    <div id="lg-eq" hidden style="display:grid;gap:14px">
+      <div class="gente" id="gente"></div>
+      <div class="fld"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
+      <button class="btn" id="entrar" type="button" disabled>Entrar</button>
+      <button class="btn sec" id="b-voltar-cel" type="button">Entrar pelo celular</button>
+    </div>
     <div class="erro" id="erro-login" role="alert"></div>
   </div></div>
 </section>
@@ -416,6 +426,64 @@ async function entrar(){
   $("senha").value = ""; await iniciar();
 }
 $("entrar").onclick = entrar;
+// ---- entrada pelo celular (código no WhatsApp) e convites
+const FN_ACESSO = SUPA_URL + "/functions/v1/prosa-acesso";
+async function chamarAcesso(corpo){
+  const { data: { session } } = await sb.auth.getSession();
+  const r = await fetch(FN_ACESSO, {method:"POST", headers:{"Content-Type":"application/json", apikey: SUPA_ANON,
+    Authorization: "Bearer " + (session ? session.access_token : SUPA_ANON)}, body: JSON.stringify(corpo)});
+  let j = {}; try { j = await r.json(); } catch(e){}
+  if (!r.ok) throw new Error(j.erro || "Falha na conexão. Tente de novo.");
+  return j;
+}
+$("b-eq").onclick = () => { $("lg-cel").hidden = true; $("lg-eq").hidden = false; $("erro-login").textContent = ""; };
+$("b-voltar-cel").onclick = () => { $("lg-eq").hidden = true; $("lg-cel").hidden = false; $("erro-login").textContent = ""; };
+$("b-codigo").onclick = async () => {
+  $("erro-login").textContent = ""; $("b-codigo").disabled = true;
+  try {
+    await chamarAcesso({acao:"codigo", telefone: $("cel").value});
+    $("fld-cod").hidden = false; $("b-cel-entrar").hidden = false; $("b-codigo").textContent = "Mandar outro código";
+    toast("Código enviado no seu WhatsApp."); setTimeout(() => $("cod").focus(), 100);
+  } catch(e){ $("erro-login").textContent = e.message; }
+  $("b-codigo").disabled = false;
+};
+async function entrarCelular(){
+  $("erro-login").textContent = ""; $("b-cel-entrar").disabled = true;
+  try {
+    const j = await chamarAcesso({acao:"entrar", telefone: $("cel").value, codigo: $("cod").value});
+    const { error } = await sb.auth.verifyOtp({token_hash: j.token_hash, type: "magiclink"});
+    if (error) throw new Error("Não consegui abrir a sessão. Peça outro código.");
+    $("cod").value = ""; await iniciar();
+  } catch(e){ $("erro-login").textContent = e.message; }
+  $("b-cel-entrar").disabled = false;
+}
+$("b-cel-entrar").onclick = entrarCelular;
+$("cod").addEventListener("input", () => { if ($("cod").value.replace(/\D/g, "").length === 6) entrarCelular(); });
+function adicionarPessoa(numero){
+  folha(`<h3>Adicionar pessoa</h3>
+    <div class="fld"><label for="ap-nome">Nome</label><input id="ap-nome" type="text" maxlength="60" placeholder="Nome da pessoa"></div>
+    <div class="fld"><label for="ap-cel">Celular com DDD</label><input id="ap-cel" type="tel" inputmode="tel" placeholder="(64) 99999-9999" value="${esc(numero || "")}"></div>
+    <button class="btn" type="button" id="ap-ok">Convidar pelo WhatsApp</button>
+    <p class="dica">A pessoa recebe no WhatsApp o link para instalar a Prosa. Para entrar, ela usa esse mesmo número e recebe um código.</p>`);
+  $("ap-ok").onclick = async () => {
+    $("ap-ok").disabled = true;
+    try {
+      const j = await chamarAcesso({acao:"convidar", nome: $("ap-nome").value, telefone: $("ap-cel").value});
+      fecharFolha(); await carregarPerfis();
+      toast(j.ja_na_prosa ? `${j.nome} já está na Prosa e entrou nos seus contatos.` : (j.convite_enviado ? "Convite enviado no WhatsApp." : "Convite criado. O WhatsApp não saiu agora; a pessoa pode entrar pelo link de instalação."));
+    } catch(e){ toast(e.message); $("ap-ok").disabled = false; }
+  };
+}
+async function procurarNumero(){
+  const n = ($("n-busca").value || "").replace(/\D/g, "");
+  if (n.length < 10){ toast("Digite o número com DDD."); return; }
+  const tel = n.length <= 11 ? "55" + n : n;
+  const { data } = await sb.rpc("zeca_buscar_numero", {tel});
+  const p = (data || [])[0];
+  if (!p){ adicionarPessoa($("n-busca").value); toast("Esse número ainda não está na Prosa. Convide a pessoa."); return; }
+  if (p.id === eu.id){ toast("Esse número é o seu."); return; }
+  await sb.rpc("zeca_adicionar_contato", {p: p.id}); await carregarPerfis(); individual(p.id);
+}
 $("senha").addEventListener("keydown", e => { if (e.key === "Enter" && escolhido) entrar(); });
 function regrasSenha(){
   const n = $("s-nova").value, c = $("s-conf").value;
@@ -850,10 +918,15 @@ $("b-nova").onclick = () => {
   const outros = Object.values(perfis).filter(p => p.id !== eu.id);
   folha(`<h3>Nova conversa</h3>
     <button class="op" type="button" id="n-grupo"><span class="cc"><svg width="24" height="24"><use href="#i-grupo"/></svg></span><span><b>Novo grupo</b></span></button>
+    <button class="op" type="button" id="n-pessoa"><span class="cc"><svg width="24" height="24"><use href="#i-nova"/></svg></span><span><b>Adicionar pessoa</b><small>Convidar pelo número do celular</small></span></button>
+    <label class="busca" for="n-busca" style="margin:6px 0"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="n-busca" type="tel" inputmode="tel" placeholder="Procurar pelo número"><button type="button" class="ib" id="n-busca-ok" aria-label="Procurar" style="width:32px;height:32px"><svg width="18" height="18"><use href="#i-enviar"/></svg></button></label>
     <div class="sec">Contatos</div>
     <button class="op" type="button" data-ind="zeca">${avatar({zeca:true})}<span><b>Zeca</b><small>Assistente da Cerrado</small></span></button>
-    ${outros.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>Equipe Cerrado</small></span></button>`).join("")}`);
+    ${outros.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</small></span></button>`).join("")}`);
   $("n-grupo").onclick = novoGrupo;
+  $("n-pessoa").onclick = () => adicionarPessoa();
+  $("n-busca-ok").onclick = procurarNumero;
+  $("n-busca").addEventListener("keydown", e => { if (e.key === "Enter") procurarNumero(); });
   $("folha-cx").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => individual(b.dataset.ind));
 };
 async function individual(alvo){
@@ -918,7 +991,7 @@ function infoConversa(){
 }
 $("c-tit").onclick = infoConversa; $("c-av").onclick = infoConversa;
 $("b-cmenu").onclick = e => menuGeral(e, [["Dados da conversa", infoConversa], ["Voltar para as conversas", () => $("b-voltar").click()]]);
-$("b-menu").onclick = e => menuGeral(e, [["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small></div>`)], ["Sair", sair]]);
+$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small></div>`)], ["Sair", sair]]);
 function menuGeral(e, ops){
   e.stopPropagation(); fecharMenu();
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -1089,7 +1162,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22k";
+const VERSAO_APP = "2026-09-22l";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
