@@ -157,6 +157,9 @@ button{cursor:pointer}
 #g-trava{position:absolute;right:10px;bottom:calc(var(--safe-b) + 72px);width:44px;padding:10px 0;border-radius:22px;background:var(--bg);box-shadow:0 1px 6px rgba(0,0,0,.25);display:grid;justify-items:center;gap:4px;color:var(--muted);z-index:6}
 .redondo.grav{transform:scale(1.35);transition:transform .15s}
 .baixo{position:relative}
+#fmt-barra{display:flex;gap:4px;margin:0 0 6px 8px;width:max-content;background:var(--bg);border-radius:18px;padding:4px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+#fmt-barra button{width:40px;height:34px;border:0;border-radius:14px;background:transparent;font-size:17px;color:var(--ink)}
+#fmt-barra button:active{background:var(--hover)}
 .gravando .pt{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pisca 1s infinite}
 @keyframes pisca{50%{opacity:.2}}
 .painel{flex:none;height:300px;background:var(--panel);display:flex;flex-direction:column;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
@@ -320,6 +323,7 @@ button{cursor:pointer}
   <button class="descer" id="b-descer" type="button" aria-label="Ir para o fim" hidden><svg width="22" height="22"><use href="#i-desce"/></svg></button>
   <div class="baixo">
     <div class="resp" id="resp" hidden><div id="resp-cita" style="flex:1;min-width:0"></div><button class="ib" type="button" id="resp-x" aria-label="Cancelar resposta"><svg><use href="#i-x"/></svg></button></div>
+    <div id="fmt-barra" hidden><button type="button" data-f="*" aria-label="Negrito"><b>N</b></button><button type="button" data-f="_" aria-label="Itálico"><i>I</i></button><button type="button" data-f="~" aria-label="Riscado"><s>R</s></button><button type="button" data-f="```" aria-label="Monoespaçado" style="font-family:monospace">M</button></div>
     <form class="comp" id="form" autocomplete="off">
       <div class="pilula" id="pilula">
         <button class="ib" type="button" id="b-emoji" aria-label="Emoji e figurinhas"><svg><use href="#i-emoji"/></svg></button>
@@ -359,6 +363,7 @@ const PACOTES = [
   {id:"emoji", nome:"Emojis", icone:"fig/emoji/01_joinha.webp", arquivos: ["fig/emoji/01_joinha.webp", "fig/emoji/02_negativo.webp", "fig/emoji/03_ok.webp", "fig/emoji/04_palmas.webp", "fig/emoji/05_maos_juntas.webp", "fig/emoji/06_aperto_de_mao.webp", "fig/emoji/07_aceno.webp", "fig/emoji/08_paz.webp", "fig/emoji/09_dedos_cruzados.webp", "fig/emoji/10_musculo.webp", "fig/emoji/11_maos_ao_alto.webp", "fig/emoji/12_apontando.webp", "fig/emoji/13_coracao_maos.webp", "fig/emoji/14_escrevendo.webp", "fig/emoji/15_rindo_chorando.webp", "fig/emoji/16_rolando_de_rir.webp", "fig/emoji/17_sorriso.webp", "fig/emoji/18_sorriso_suor.webp", "fig/emoji/19_piscando.webp", "fig/emoji/20_apaixonado.webp", "fig/emoji/21_beijo.webp", "fig/emoji/22_anjo.webp", "fig/emoji/23_oculos.webp", "fig/emoji/24_festa.webp", "fig/emoji/25_cauboi.webp", "fig/emoji/26_pensando.webp", "fig/emoji/27_revirando_olhos.webp", "fig/emoji/28_mao_na_boca.webp", "fig/emoji/29_careta.webp", "fig/emoji/30_suspiro.webp", "fig/emoji/31_sem_palavras.webp", "fig/emoji/32_de_cabeca_para_baixo.webp", "fig/emoji/33_espantado.webp", "fig/emoji/34_assustado.webp", "fig/emoji/35_cabeca_explodindo.webp", "fig/emoji/36_triste.webp", "fig/emoji/37_chorando.webp", "fig/emoji/38_bravo.webp", "fig/emoji/39_dormindo.webp", "fig/emoji/40_coracao.webp", "fig/emoji/41_fogo.webp", "fig/emoji/42_cem.webp", "fig/emoji/43_check.webp", "fig/emoji/44_olhos.webp"]}
 ];
 const EMOJIS = {
+  "Setas e marcadores": "➡️ ⬅️ ⬆️ ⬇️ ↗️ ↘️ ↙️ ↖️ ↔️ ↕️ → ← ↑ ↓ ⇒ ⇐ ⇨ ▶️ ◀️ 🔼 🔽 ⏩ ⏪ ↩️ ↪️ ⤴️ ⤵️ 🔄 🔁 👉 👈 👆 👇 ☝️ • ▪️ ◾ 🔹 🔸 🔶 🔷 ✔️ ✅ ☑️ ❌ ❗ ⚠️ 📌 📍 ⭐",
   "Carinhas": "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😛 😜 🤪 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐 🤨 😐 😑 😶 😏 😒 🙄 😬 😮‍💨 🤥 😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🥵 🥶 🥴 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 😟 🙁 😮 😯 😲 😳 🥺 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠 🤬 😈 💀 💩 🤡 👻 🙈 🙉 🙊",
   "Gestos": "👍 👎 👌 🤌 🤏 ✌️ 🤞 🫰 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ ✋ 🤚 🖐️ 🖖 👋 🤝 🙏 👏 🙌 🫶 👐 🤲 💪 ✍️ 🫵 👀 🧠",
   "Pessoas": "👨‍🌾 👩‍🌾 🧑‍🌾 👨‍💼 👩‍💼 👨‍💻 👩‍💻 👷 👮 🧑‍⚖️ 👨‍🔬 👩‍🔬 🤷 🤷‍♂️ 🤷‍♀️ 🤦 🤦‍♂️ 🤦‍♀️ 🙋 🙋‍♂️ 🙋‍♀️ 🙆 🙅 💁 🙇 🏃 🚶 👨‍👩‍👧 👫",
@@ -375,7 +380,7 @@ let lidosAtual = {}, msgsAtual = [], respondendo = null;
 function mostrar(id){ ["t-login","t-senha","t-lista","t-chat"].forEach(t => $(t).hidden = t !== id); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function fmt(s){
-  const h = esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>").replace(/(^|\s)_([^_\n]+)_/g,"$1<i>$2</i>").replace(/~([^~\n]+)~/g,"<s>$1</s>")
+  const h = esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>").replace(/(^|\s)_([^_\n]+)_/g,"$1<i>$2</i>").replace(/~([^~\n]+)~/g,"<s>$1</s>").replace(/```([^`]+)```/g,"<code>$1</code>")
     .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
   return h.replace(/:(zeca_\d{2}_[a-z_]+):/g, (m, n) => ZECA_FACES.includes(n) ? `<img class="ze" src="emoji/zeca/${n}.webp" alt="">` : m);
 }
@@ -721,11 +726,24 @@ function menuFig(a, x, y){
   abrirMenu([ehFavorita(a) ? ["Tirar das favoritas", () => marcarFavorita(a, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(a, true)],
              ["Baixar figurinha", () => baixarFigurinha(a)]], x, y);
 }
+async function copiarTexto(t){
+  try { await navigator.clipboard.writeText(t); toast("Mensagem copiada"); }
+  catch(e){ selecionarTexto(t); }
+}
+function selecionarTexto(t){
+  folha(`<h3>Selecionar texto</h3><p class="dica" style="margin:0 4px">Segure o dedo e arraste para escolher o pedaço que quer copiar.</p>
+    <div id="sel-txt" style="white-space:pre-wrap;user-select:text;-webkit-user-select:text;-webkit-touch-callout:default;font-size:16px;line-height:1.45;padding:12px;border:1px solid var(--line);border-radius:10px;max-height:55vh;overflow:auto">${esc(t)}</div>
+    <button class="btn" type="button" id="sel-tudo">Copiar tudo</button>`);
+  $("sel-tudo").onclick = async () => { try { await navigator.clipboard.writeText(t); toast("Copiado"); fecharFolha(); } catch(e){ const r = document.createRange(); r.selectNodeContents($("sel-txt")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Texto selecionado: toque em Copiar"); } };
+}
 function menuMsg(m, x, y){
   fecharMenu();
   const ops = [];
   if (!m.apagada) ops.push(["Responder", () => responder(m)]);
-  if (!m.apagada && m.tipo === "texto" && m.texto) ops.push(["Copiar", () => { navigator.clipboard && navigator.clipboard.writeText(m.texto); toast("Mensagem copiada"); }]);
+  if (!m.apagada && m.texto && m.tipo !== "figurinha") {
+    ops.push(["Copiar", () => copiarTexto(m.texto)]);
+    ops.push(["Selecionar texto", () => selecionarTexto(m.texto)]);
+  }
   if (!m.apagada && m.tipo === "figurinha" && m.texto){
     ops.push(ehFavorita(m.texto) ? ["Tirar das favoritas", () => marcarFavorita(m.texto, false)] : ["⭐ Salvar nas favoritas", () => marcarFavorita(m.texto, true)]);
     ops.push(["Baixar figurinha", () => baixarFigurinha(m.texto)]);
@@ -773,6 +791,19 @@ function trocarBotao(){
   $("b-cam").hidden = temTexto;
 }
 $("txt").addEventListener("input", ajustarTxt);
+// barra de formatação aparece quando há texto selecionado na caixa (N = *negrito*, I = _itálico_, R = ~riscado~)
+function checarSelecao(){ const t = $("txt"); $("fmt-barra").hidden = !(document.activeElement === t && t.selectionEnd > t.selectionStart); }
+document.addEventListener("selectionchange", checarSelecao);
+$("txt").addEventListener("blur", () => setTimeout(checarSelecao, 200));
+$("fmt-barra").querySelectorAll("button").forEach(b => {
+  b.addEventListener("pointerdown", e => e.preventDefault());       // não tira o foco da caixa
+  b.onclick = () => {
+    const t = $("txt"), a = t.selectionStart, z = t.selectionEnd, m = b.dataset.f;
+    if (z <= a) return;
+    t.value = t.value.slice(0, a) + m + t.value.slice(a, z) + m + t.value.slice(z);
+    t.selectionStart = a; t.selectionEnd = z + 2 * m.length; ajustarTxt(); checarSelecao();
+  };
+});
 $("txt").addEventListener("focus", () => { if (!$("painel").hidden) fecharPainel(); });
 $("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer:fine)").matches){ e.preventDefault(); $("b-acao").click(); } });
 let segurando = false, travado = false, pX = 0, pY = 0, soltouAntes = false;
@@ -1206,7 +1237,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22m";
+const VERSAO_APP = "2026-09-22n";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
