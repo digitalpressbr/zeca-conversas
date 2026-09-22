@@ -1040,7 +1040,8 @@ const SONS = [
   {id:"toque_viola", nome:"Viola"},
   {id:"zeca_chegou", nome:"Zeca: “Chegou mensagem!”"},
   {id:"zeca_escuta", nome:"Zeca: “Mensagem nova!”"},
-  {id:"zeca_prosa", nome:"Zeca: “Ó a prosa, sô!”"}
+  {id:"zeca_prosa", nome:"Zeca: “Ó a prosa, sô!”"},
+  {id:"zeca_mensagem", nome:"Zeca: “Mensageeem!” (gritado)"}
 ];
 const VIBRAS = [
   {id:"nenhuma", nome:"Sem vibração", p:[]},
@@ -1082,7 +1083,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-22i";
+const VERSAO_APP = "2026-09-22j";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
