@@ -143,10 +143,14 @@ button{cursor:pointer}
 .arq small{color:var(--muted);font-size:12px}
 .img{display:block;max-width:260px;width:100%;min-height:80px;border-radius:6px;cursor:pointer;background:var(--quote)}
 .aud{display:flex;align-items:center;gap:8px;min-width:230px;padding:2px 0}
-.aud button{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;flex:none}
-.aud .onda{flex:1;display:flex;align-items:center;gap:2px;height:32px;cursor:pointer;min-width:120px}
-.aud .onda{--barra:rgba(0,0,0,.22);--barra-ok:var(--accent2)}
+.aud button{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--accent2);display:grid;place-items:center;flex:none}
+.aud.ouvido button{color:var(--muted)}
+.aud .onda{position:relative;flex:1;height:32px;cursor:pointer;min-width:120px;--barra:rgba(0,0,0,.22);--barra-ok:var(--accent2);--cheio:0%}
+.aud.ouvido .onda{--barra:rgba(0,0,0,.15)}
+.aud .onda span{position:absolute;inset:0;display:flex;align-items:center;gap:2px}
 .aud .onda i{flex:1;min-height:3px;border-radius:2px;background:var(--barra)}
+.aud .onda .ok{clip-path:inset(0 calc(100% - var(--cheio)) 0 0)}
+.aud .onda .ok i{background:var(--barra-ok)}
 .aud small{font-size:12px;color:var(--muted);min-width:34px}
 .aud .vel{font-size:12px;font-weight:700;color:#fff;background:#8696A0;border-radius:11px;padding:2px 7px;cursor:pointer;flex:none;user-select:none}
 .aud .vel.rapido{background:var(--accent2)}
@@ -256,7 +260,7 @@ button{cursor:pointer}
 .rc-baixo span{font-size:12.5px;opacity:.7;text-align:center}
 .rc-baixo button{border:0;background:none;color:#fff;font-size:16.5px;font-weight:500;padding:8px}
 .rc-baixo [data-ok]{color:#25D366}
-@media (prefers-color-scheme: dark){ .naolidas{background:rgba(0,0,0,.35)} .aud .onda{--barra:rgba(255,255,255,.28)} }
+@media (prefers-color-scheme: dark){ .naolidas{background:rgba(0,0,0,.35)} .aud .onda{--barra:rgba(255,255,255,.28)} .aud.ouvido .onda{--barra:rgba(255,255,255,.16)} }
 </style>
 </head>
 <body>
@@ -763,7 +767,7 @@ function linha(m, ant){
   else if (m.tipo === "audio"){
     const fp = z ? "zeca.png" : ((perfis[m.autor_id] || {}).foto_url || "");
     const fo = fp ? `<span class="fo" style="background-image:url('${esc(fp)}')"></span>` : "";
-    h += `<div class="aud" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "audio/mpeg")}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="onda" aria-label="Posição do áudio"></span><small>0:00</small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
+    h += `<div class="aud" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "audio/mpeg")}">${meu ? "" : fo}<button type="button" aria-label="Tocar áudio"><svg width="26" height="26"><use href="#i-play"/></svg></button><span class="onda" aria-label="Posição do áudio"></span><small></small><b class="vel" role="button" tabindex="0" aria-label="Velocidade do áudio">1x</b>${meu ? fo : ""}</div>` + (m.texto ? `<div class="tx" style="font-size:13.5px;color:var(--muted);margin-top:4px">${fmt(m.texto)}</div>` : "") + `<div>${meta}</div>`;
   }
   else if (m.tipo === "recado"){
     cls = "m rec";
@@ -825,16 +829,18 @@ function ligarMidia(b){
   b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u){ el.src = u; el.onclick = () => visor(u); } });
   b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u) window.open(u, "_blank"); });
   b.querySelectorAll(".aud").forEach(el => {
-    let au = null; const bt = el.querySelector("button"), onda = el.querySelector(".onda"), tm = el.querySelector("small"), vel = el.querySelector(".vel");
+    let au = null, raf = 0; const caminho = el.dataset.path;
+    const bt = el.querySelector("button"), onda = el.querySelector(".onda"), tm = el.querySelector("small"), vel = el.querySelector(".vel");
     const icone = n => bt.innerHTML = `<svg width="26" height="26"><use href="#i-${n}"/></svg>`;
-    desenharOnda(onda, el.dataset.path);
-    const pintar = r => {                       // enche a onda continuamente, como no WhatsApp
-      const bs = onda.children, exato = Math.max(0, Math.min(1, r)) * bs.length, cheias = Math.floor(exato), pedaco = exato - cheias;
-      for (let i = 0; i < bs.length; i++){
-        bs[i].style.background = i < cheias ? "var(--barra-ok)"
-          : i > cheias ? "var(--barra)"
-          : `linear-gradient(90deg, var(--barra-ok) ${(pedaco * 100).toFixed(1)}%, var(--barra) ${(pedaco * 100).toFixed(1)}%)`;
-      }
+    if (OUVIDOS.has(caminho) || el.closest(".lin.eu")) el.classList.add("ouvido");   // o meu próprio áudio já nasce sem o aviso
+    desenharOnda(onda, caminho, tm);
+    const total = () => { const o = ONDAS.get(caminho); return (au && isFinite(au.duration) && au.duration) ? au.duration : (o && o.dur) || 0; };
+    const pintar = r => onda.style.setProperty("--cheio", (Math.max(0, Math.min(1, r)) * 100).toFixed(2) + "%");
+    const relogio = () => { const d = total(); if (d) tm.textContent = mmss(d); };
+    const andar = () => {                       // a onda enche por quadro, não de 250 em 250 ms
+      if (!au || au.paused || au.ended){ raf = 0; return; }
+      const d = total(); if (d){ pintar(au.currentTime / d); tm.textContent = mmss(au.currentTime); }
+      raf = requestAnimationFrame(andar);
     };
     const mostraVel = () => { const v = velAudio(); vel.textContent = String(v).replace(".", ",") + "x"; vel.classList.toggle("rapido", v > 1); };
     mostraVel();
@@ -844,12 +850,17 @@ function ligarMidia(b){
     el._mostraVel = mostraVel;
     const preparar = async () => {
       if (au) return true;
-      const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (!u) return false; au = new Audio(u); au._icone = icone;
-      au.ontimeupdate = () => { if (isFinite(au.duration) && au.duration) pintar(au.currentTime / au.duration); tm.textContent = mmss(au.currentTime); };
-      au.onended = () => { icone("play"); pintar(0); if (audioTocando === au) audioTocando = null; };
-      au.onpause = () => icone("play");
-      au.onplay = () => icone("pause");
-      au.onloadedmetadata = () => { if (isFinite(au.duration)) tm.textContent = mmss(au.duration); };
+      const u = await urlDoArquivo(caminho, el.dataset.mime); if (!u) return false; au = new Audio(u); au._icone = icone;
+      au.ontimeupdate = () => { if (raf) return; const d = total(); if (d) pintar(au.currentTime / d); tm.textContent = mmss(au.currentTime); };
+      au.onended = () => {
+        icone("play"); el.classList.remove("tocando"); pintar(0); relogio(); marcarOuvido(caminho); el.classList.add("ouvido");
+        if (raf){ cancelAnimationFrame(raf); raf = 0; }
+        if (audioTocando === au) audioTocando = null;
+        emenda(el);                                         // áudio seguido de áudio: já toca o próximo
+      };
+      au.onpause = () => { icone("play"); el.classList.remove("tocando"); if (raf){ cancelAnimationFrame(raf); raf = 0; } };
+      au.onplay = () => { icone("pause"); el.classList.add("tocando"); if (!raf) raf = requestAnimationFrame(andar); };
+      au.onloadedmetadata = () => { const o = ONDAS.get(caminho); if (isFinite(au.duration) && au.duration){ if (o) o.dur = au.duration; if (au.paused) relogio(); } };
       return true;
     };
     const tocar = () => {                                   // só um áudio por vez: o que estava tocando para
@@ -857,14 +868,31 @@ function ligarMidia(b){
       audioTocando = au; au.playbackRate = velAudio(); au.play();
     };
     bt.onclick = async () => { if (!await preparar()) return; if (au.paused) tocar(); else au.pause(); };
+    el._tocarSozinho = async () => { if (!await preparar()) return; if (au.paused) tocar(); };
     onda.onclick = async e => {                             // tocar na onda pula para aquele ponto
       if (!await preparar()) return;
       const r = Math.min(1, Math.max(0, (e.clientX - onda.getBoundingClientRect().left) / onda.offsetWidth));
-      const pular = () => { if (isFinite(au.duration)) { au.currentTime = r * au.duration; pintar(r); } };
+      const pular = () => { const d = total(); if (d){ au.currentTime = r * d; pintar(r); if (r > .95){ marcarOuvido(caminho); el.classList.add("ouvido"); } } };
       if (isFinite(au.duration)) pular(); else au.addEventListener("loadedmetadata", pular, {once:true});
       if (au.paused) tocar();
     };
   });
+}
+// depois que um áudio acaba, o de baixo começa sozinho; qualquer outra mensagem no meio interrompe a sequência
+function emenda(el){
+  let lin = el.closest(".lin"); if (!lin) return;
+  if (!lin.isConnected) lin = $("msgs").querySelector(`.lin[data-id="${lin.dataset.id}"]`) || lin;   // a lista foi redesenhada
+  let n = lin.nextElementSibling;
+  while (n && !n.classList.contains("lin")){
+    const pular = (n.classList.contains("divis") && !n.dataset.id) || n.classList.contains("naolidas");
+    if (!pular) return;                                     // mensagem de sistema no meio: para aqui
+    n = n.nextElementSibling;
+  }
+  const a = n && n.querySelector(".aud");
+  if (!a || !a._tocarSozinho) return;
+  const r = a.getBoundingClientRect(), M = $("msgs").getBoundingClientRect();
+  if (r.bottom > M.bottom || r.top < M.top) a.scrollIntoView({block: "nearest", behavior: "smooth"});
+  a._tocarSozinho();
 }
 let audioTocando = null;
 const ONDAS = new Map();
@@ -872,7 +900,10 @@ const BARRAS = 36;
 // onda do áudio: lê o próprio arquivo e desenha o volume ao longo do tempo (como no WhatsApp)
 function barrasFalsas(chave){ let h = 7; for (const c of chave) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return Array.from({length: BARRAS}, (_, i) => { h = (h * 1103515245 + 12345) >>> 0; return 0.25 + 0.6 * ((h >> 8) % 1000) / 1000 * (0.6 + 0.4 * Math.sin(i / 3)); }); }
-function pintarBarras(onda, alturas){ onda.innerHTML = alturas.map(a => `<i style="height:${Math.round(6 + a * 24)}px"></i>`).join(""); }
+function pintarBarras(onda, alturas){                 // duas camadas iguais: a de baixo cinza, a de cima verde e recortada
+  const b = alturas.map(a => `<i style="height:${Math.round(6 + a * 24)}px"></i>`).join("");
+  onda.innerHTML = `<span class="bg">${b}</span><span class="ok">${b}</span>`;
+}
 async function calcularOnda(path){
   const u = await urlDoArquivo(path, "audio/mpeg"); if (!u) throw new Error("sem url");
   const buf = await (await fetch(u)).arrayBuffer();
@@ -883,16 +914,41 @@ async function calcularOnda(path){
   const ch = dados.getChannelData(0), passo = Math.floor(ch.length / BARRAS) || 1, out = [];
   for (let i = 0; i < BARRAS; i++){ let soma = 0; const ini = i * passo; for (let j = 0; j < passo; j += 16){ const v = ch[ini + j] || 0; soma += v * v; } out.push(Math.sqrt(soma / (passo / 16))); }
   const max = Math.max(...out) || 1;
-  return out.map(v => Math.pow(v / max, 0.7));
+  return {alturas: out.map(v => Math.pow(v / max, 0.7)), dur: dados.duration};
+}
+// se o arquivo não puder ser decodificado, o tempo ainda vem pelos metadados
+async function duracaoSolta(path, mime){
+  const u = await urlDoArquivo(path, mime || "audio/mpeg"); if (!u) return 0;
+  return await new Promise(ok => { const a = new Audio(); a.preload = "metadata";
+    a.onloadedmetadata = () => ok(isFinite(a.duration) ? a.duration : 0); a.onerror = () => ok(0); a.src = u; });
+}
+function mostrarDuracao(onda, dur){
+  const aud = onda.closest(".aud"), tm = aud && aud.querySelector("small");
+  if (tm && dur && !aud.classList.contains("tocando")) tm.textContent = mmss(dur);
 }
 const obsOnda = "IntersectionObserver" in window ? new IntersectionObserver(ents => ents.forEach(async en => {
   if (!en.isIntersecting) return; obsOnda.unobserve(en.target);
-  const path = en.target.dataset.path;
-  try { const a = ONDAS.get(path) || await calcularOnda(path); ONDAS.set(path, a); pintarBarras(en.target, a); } catch(e){}
+  const path = en.target.dataset.path, aud = en.target.closest(".aud");
+  let o = ONDAS.get(path);
+  try { if (!o){ o = await calcularOnda(path); ONDAS.set(path, o); } pintarBarras(en.target, o.alturas); } catch(e){}
+  if (!o || !o.dur){                                  // não deu para decodificar: pega só o tempo
+    const d = await duracaoSolta(path, aud && aud.dataset.mime);
+    if (d){ o = o || {alturas: barrasFalsas(path)}; o.dur = d; ONDAS.set(path, o); }
+  }
+  if (o && o.dur) mostrarDuracao(en.target, o.dur);
 }), {rootMargin: "200px"}) : null;
-function desenharOnda(onda, path){
-  pintarBarras(onda, ONDAS.get(path) || barrasFalsas(path));
-  if (!ONDAS.has(path) && obsOnda){ onda.dataset.path = path; obsOnda.observe(onda); }
+function desenharOnda(onda, path, tm){
+  const o = ONDAS.get(path);
+  pintarBarras(onda, (o && o.alturas) || barrasFalsas(path));
+  if (tm && o && o.dur) tm.textContent = mmss(o.dur);     // o tempo já aparece assim que o áudio chega
+  if ((!o || !o.dur) && obsOnda){ onda.dataset.path = path; obsOnda.observe(onda); }
+}
+// áudios já escutados ficam com o botão e a onda apagados
+const OUVIDOS = new Set((() => { try { return JSON.parse(localStorage.getItem("prosa_aud_ouvidos") || "[]"); } catch(e){ return []; } })());
+function marcarOuvido(path){
+  if (!path || OUVIDOS.has(path)) return;
+  OUVIDOS.add(path);
+  try { localStorage.setItem("prosa_aud_ouvidos", JSON.stringify([...OUVIDOS].slice(-800))); } catch(e){}
 }
 function velAudio(){ try { const v = parseFloat(localStorage.getItem("prosa_vel_audio")); return [1, 1.25, 1.5, 2].includes(v) ? v : 1; } catch(e){ return 1; } }
 function mmss(s){ s = Math.round(s||0); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); }
@@ -1627,7 +1683,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-23c";
+const VERSAO_APP = "2026-09-23d";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
