@@ -20,6 +20,7 @@
   --wall:#EFEAE2; --in:#FFFFFF; --out:#D9FDD3; --quote:rgba(0,0,0,.05);
   --tick:#53BDEB; --badge:#25A55F; --danger:#D93F3F; --panel:#F0F2F5; --chip:#E7F3EC; --chip-ink:#1F6B45;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji",sans-serif;
 }
 @media (prefers-color-scheme: dark){
@@ -37,7 +38,7 @@ button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 [hidden]{display:none!important}
 .tela{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);max-width:760px;margin:0 auto}
-.hdr{display:flex;align-items:center;gap:6px;padding:calc(var(--safe-t) + 6px) 4px 6px 10px;background:var(--head);color:var(--head-ink);flex:none;min-height:56px}
+.hdr{display:flex;align-items:center;gap:6px;padding:calc(var(--safe-t) + 6px) calc(var(--safe-r) + 4px) 6px calc(var(--safe-l) + 10px);background:var(--head);color:var(--head-ink);flex:none;min-height:56px}
 .hdr h1{font-size:22px;font-weight:600;margin:0 0 0 6px;flex:1;letter-spacing:-.01em}
 .hdr .tit{flex:1;min-width:0;cursor:pointer;padding:2px 4px}
 .hdr .tit b{display:block;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -157,7 +158,7 @@ button{cursor:pointer}
 .aud .fo{width:40px;height:40px;border-radius:50%;background-size:cover;background-position:center;flex:none;background-color:#F7F5EE}
 .digitando{align-self:flex-start;font-size:13px;color:var(--muted);background:var(--in);border-radius:8px;padding:6px 10px;margin-top:6px;box-shadow:0 1px .5px rgba(0,0,0,.13)}
 .descer{position:absolute;right:14px;bottom:88px;width:40px;height:40px;border-radius:50%;background:var(--bg);color:var(--muted);border:0;box-shadow:0 1px 4px rgba(0,0,0,.25);display:grid;place-items:center;z-index:5}
-.baixo{flex:none;padding:6px 6px calc(var(--safe-b) + 6px);background:var(--wall)}
+.baixo{flex:none;padding:6px calc(var(--safe-r) + 6px) calc(var(--safe-b) + 6px) calc(var(--safe-l) + 6px);background:var(--wall)}
 .resp{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:18px 18px 0 0;padding:8px 8px 4px 10px;margin:0 54px 0 0}
 .resp .cita{flex:1;margin:0}
 .comp{display:flex;align-items:flex-end;gap:6px}
@@ -219,8 +220,22 @@ button{cursor:pointer}
 .figs button:active{background:var(--hover)}
 .figs img{width:100%;aspect-ratio:1;display:block;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
 .folha{position:fixed;inset:0;background:rgba(11,20,26,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
-.folha .cx{background:var(--bg);width:100%;max-width:760px;border-radius:18px 18px 0 0;padding:16px 16px calc(var(--safe-b) + 16px);display:grid;gap:8px;max-height:90vh;overflow-y:auto}
+.folha .cx{background:var(--bg);width:100%;max-width:760px;border-radius:18px 18px 0 0;padding:16px calc(var(--safe-r) + 16px) calc(var(--safe-b) + 16px) calc(var(--safe-l) + 16px);display:grid;gap:8px;max-height:90vh;overflow-y:auto}
 .folha h3{margin:4px 4px 6px;font-size:18px;font-weight:600}
+.fcab{display:flex;align-items:center;gap:2px;margin:-4px -6px 2px}
+.fcab h3{margin:0;flex:1}
+.fcab .ib{width:38px;height:38px;flex:none;color:var(--muted)}
+.cvt{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
+.cvt:last-of-type{border-bottom:0}
+.cvt b{display:block;font-size:15px;font-weight:500}
+.cvt small{display:block;color:var(--muted);font-size:12.5px}
+.cvt .st{font-size:12px;font-weight:600;border-radius:11px;padding:3px 9px;white-space:nowrap}
+.cvt .st.ok{background:var(--chip);color:var(--chip-ink)}
+.cvt .st.esp{background:rgba(0,0,0,.06);color:var(--muted)}
+.cvt .st.and{background:#FFF3CD;color:#8A6100}
+.cvt .mais{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.cvt .remanda{border:0;background:transparent;color:var(--accent2);font-size:12.5px;font-weight:600;padding:2px 4px}
+.cvt .remanda:disabled{color:var(--muted)}
 .op{display:flex;align-items:center;gap:16px;padding:10px 6px;border:0;background:none;width:100%;text-align:left;border-radius:10px}
 .op:active{background:var(--hover)}
 .op b{display:block;font-size:16.5px;font-weight:500}
@@ -562,6 +577,42 @@ function adicionarPessoa(numero){
       toast(j.ja_na_prosa ? `${j.nome} já está na Prosa e entrou nos seus contatos.` : (j.convite_enviado ? "Convite enviado no WhatsApp." : "Convite criado. O WhatsApp não saiu agora; a pessoa pode entrar pelo link de instalação."));
     } catch(e){ toast(e.message); $("ap-ok").disabled = false; }
   };
+}
+// quem convidou acompanha quem já entrou
+function quandoFoi(iso){
+  const d = new Date(iso), h = (Date.now() - d) / 36e5;
+  if (h < 1) return "agora há pouco";
+  if (h < 24) return "há " + Math.round(h) + (Math.round(h) === 1 ? " hora" : " horas");
+  const dias = Math.round(h / 24);
+  if (dias === 1) return "ontem";
+  if (dias < 30) return "há " + dias + " dias";
+  return "em " + d.toLocaleDateString("pt-BR");
+}
+async function meusConvites(){
+  folha(`<h3>Convites que eu fiz</h3><p class="dica" id="cv-vazio">Carregando…</p>`);
+  const { data, error } = await sb.rpc("prosa_meus_convites");
+  const lista = data || [];
+  const linhas = lista.map(c => {
+    const entrou = !!c.aceito_em, andando = !entrou && c.pediu_codigo;
+    const st = entrou ? `<span class="st ok">Entrou</span>` : andando ? `<span class="st and">Instalando</span>` : `<span class="st esp">Esperando</span>`;
+    const quando = entrou ? "entrou " + quandoFoi(c.aceito_em)
+      : andando ? "já pediu o código de acesso"
+      : "convidado " + quandoFoi(c.criado_em) + (c.reenvios ? " · " + c.reenvios + (c.reenvios === 1 ? " reenvio" : " reenvios") : "");
+    const tel = String(c.telefone || "").replace(/^55/, "");
+    const mostrar = tel.length === 11 ? `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}` : tel;
+    return `<div class="cvt"><div style="min-width:0;flex:1"><b>${esc(c.nome)}</b><small>${mostrar} · ${quando}</small></div>
+      <div class="mais">${st}${entrou ? "" : `<button class="remanda" type="button" data-remandar="${c.id}">Mandar de novo</button>`}</div></div>`;
+  }).join("");
+  const cx = $("folha-cx");
+  if (error){ $("cv-vazio").textContent = "Não consegui carregar os convites agora."; return; }
+  if (!lista.length){ $("cv-vazio").textContent = "Você ainda não convidou ninguém. Use Adicionar pessoa para chamar alguém pelo número do celular."; return; }
+  $("cv-vazio").outerHTML = linhas + `<p class="dica">Esperando: o convite saiu no WhatsApp e a pessoa ainda não entrou. Instalando: ela já pediu o código de acesso.</p>`;
+  cx.querySelectorAll("[data-remandar]").forEach(b => b.onclick = async () => {
+    const c = lista.find(x => String(x.id) === b.dataset.remandar); if (!c) return;
+    b.disabled = true;
+    try { await chamarAcesso({acao:"convidar", nome: c.nome, telefone: c.telefone}); toast("Convite mandado de novo no WhatsApp."); meusConvites(); }
+    catch(e){ toast(e.message); b.disabled = false; }
+  });
 }
 async function procurarNumero(){
   const bruto = ($("n-busca").value || "").trim();
@@ -1391,8 +1442,24 @@ function assinar(){
 document.addEventListener("visibilitychange", () => { if (document.hidden || !eu) return; if (atual && !$("t-chat").hidden){ marcarLido(); abrir(atual.id); } else atualizarLista(); });
 
 // ---------------- nova conversa, grupos, perfil
-function folha(html){ $("folha-cx").innerHTML = html; $("folha").hidden = false; }
-function fecharFolha(){ $("folha").hidden = true; }
+let folhaNoHistorico = false;
+function folha(html){
+  const cx = $("folha-cx"); cx.innerHTML = html;
+  const cab = document.createElement("div"); cab.className = "fcab";
+  const b = document.createElement("button"); b.type = "button"; b.className = "ib"; b.setAttribute("aria-label", "Voltar");
+  b.innerHTML = '<svg width="24" height="24"><use href="#i-voltar"/></svg>';
+  b.onclick = fecharFolha;
+  cab.appendChild(b);
+  const h = cx.querySelector("h3"); if (h) cab.appendChild(h);        // o título vai para o lado do botão
+  cx.insertBefore(cab, cx.firstChild);
+  $("folha").hidden = false;
+  if (!folhaNoHistorico){ folhaNoHistorico = true; history.pushState({folha:1}, ""); }   // o voltar do Android fecha a folha, não o app
+}
+function fecharFolha(){
+  $("folha").hidden = true;
+  if (folhaNoHistorico){ folhaNoHistorico = false; if (history.state && history.state.folha) history.back(); }
+}
+window.addEventListener("popstate", () => { if (folhaNoHistorico){ folhaNoHistorico = false; $("folha").hidden = true; } });
 $("folha").onclick = e => { if (e.target.id === "folha") fecharFolha(); };
 $("b-nova").onclick = () => {
   const outros = Object.values(perfis).filter(p => p.id !== eu.id);
@@ -1474,7 +1541,7 @@ function infoConversa(){
 }
 $("c-tit").onclick = infoConversa; $("c-av").onclick = infoConversa;
 $("b-cmenu").onclick = e => menuGeral(e, [["Dados da conversa", infoConversa], ["Voltar para as conversas", () => $("b-voltar").click()]]);
-$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["PIN de segurança", trocarPin], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small><div class="assina" style="margin-top:14px"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div></div>`)], ["Sair", sair]]);
+$("b-menu").onclick = e => menuGeral(e, [["Adicionar pessoa", () => adicionarPessoa()], ["Novo grupo", novoGrupo], ["Meu perfil", meuPerfil], ["Convites que eu fiz", meusConvites], ["Avisos de mensagem", abrirAvisos], ["Trocar minha senha", () => { senhaInicial = ""; telaSenha(true); }], ["PIN de segurança", trocarPin], ["Sobre a Prosa", () => folha(`<div class="perfil"><span class="av xl" style="border-radius:28px;background-image:url(icon-512.png)"></span><h3>Prosa</h3><small style="color:var(--muted)">Versão ${VERSAO_APP} · ${navegador()}</small><small style="color:var(--muted)">Cerrado Consultoria</small><div class="assina" style="margin-top:14px"><img src="dp.png" alt="Digital Press BR" width="34" height="34"><span>Desenvolvido por<br><b>Digital Press BR</b></span></div></div>`)], ["Sair", sair]]);
 function menuGeral(e, ops){
   e.stopPropagation(); fecharMenu();
   const d = document.createElement("div"); d.className = "menu"; d.id = "menu-aberto";
@@ -1683,7 +1750,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-23d";
+const VERSAO_APP = "2026-09-23e";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
