@@ -93,7 +93,8 @@ button{cursor:pointer}
 .aviso button.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
 .row{display:grid;grid-template-columns:49px 1fr auto;gap:13px;align-items:center;padding:0 14px;width:100%;border:0;background:none;text-align:left}
 /* arrasta a conversa para a esquerda e aparece a lixeira */
-.sw{position:relative;overflow:hidden;background:var(--bg)}
+/* 🚨 pan-y: sem isso o Chrome do Android trata o gesto como rolagem e cancela o arraste lateral */
+.sw{position:relative;overflow:hidden;background:var(--bg);touch-action:pan-y}
 .sw>.row{position:relative;z-index:1;background:var(--bg);transition:transform .18s ease;will-change:transform}
 .sw>.lixo{position:absolute;z-index:0;right:0;top:0;bottom:1px;width:84px;border:0;background:#C0392B;color:#fff;display:grid;place-items:center;cursor:pointer}
 .sw>.lixo svg{width:23px;height:23px;fill:currentColor}
@@ -154,6 +155,10 @@ button{cursor:pointer}
 .img.carregando{width:260px;height:190px;object-fit:cover;background:var(--quote) center/34px no-repeat
   url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9a92' stroke-width='1.6'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='9.5' r='1.8'/%3E%3Cpath d='m21 16-5-5-9 9'/%3E%3C/svg%3E")}
 .refoto{display:block;width:260px;height:190px;border:0;border-radius:6px;background:var(--quote);color:var(--accent);font-weight:600;font-size:15px;cursor:pointer}
+/* foto ainda subindo: aparece clarinha, com o relógio no canto */
+.lin.subindo .m{opacity:.72}
+.lin.subindo .m::after{content:"⏳ enviando";position:absolute;right:10px;bottom:6px;font-size:11.5px;color:var(--muted)}
+.lin.subindo .m{position:relative}
 .aud{display:flex;align-items:center;gap:8px;min-width:230px;padding:2px 0}
 .aud button{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--accent2);display:grid;place-items:center;flex:none}
 .aud.ouvido button{color:var(--muted)}
@@ -788,38 +793,59 @@ function desenharLista(){
   }
   atualizarBadge();
 }
-// arrastar para a esquerda abre a lixeira; para a direita fecha. Serve no toque e no mouse.
+// Arrastar para a esquerda abre a lixeira; para a direita fecha. Serve no toque e no mouse.
+// 🚨 23/10/2026: a 1ª versão não funcionou no celular dele. No Android o navegador assume a rolagem e manda
+// `pointercancel`, então o arraste some no meio. A saída: `touch-action:pan-y` no CSS, `setPointerCapture` assim
+// que o gesto fica horizontal, e `touchmove` com `preventDefault` para o Chrome não levar o gesto embora.
+const ABRE = 84, LIMIAR = 10;
 function ligarArraste(L){
   L.querySelectorAll(".sw").forEach(sw => {
+    if (sw.dataset.ligado) return;
+    sw.dataset.ligado = "1";
     const row = sw.querySelector(".row");
-    let x0 = null, y0 = null, dx = 0;
-    sw.addEventListener("pointerdown", e => {
-      if (e.target.closest(".lixo")) return;
-      x0 = e.clientX; y0 = e.clientY; dx = 0; delete row.dataset.arrastou;
-    });
-    sw.addEventListener("pointermove", e => {
-      if (x0 === null) return;
-      dx = e.clientX - x0;
-      if (Math.abs(e.clientY - y0) > 24 && Math.abs(dx) < 12){ x0 = null; return; }   // está rolando a tela
-      if (Math.abs(dx) < 6) return;
-      sw.classList.add("arrastando");
-      row.dataset.arrastou = "1";
-      const base = sw.classList.contains("aberta") ? -84 : 0;
-      row.style.transform = `translateX(${Math.max(-84, Math.min(0, base + dx))}px)`;
-    });
+    let x0 = null, y0 = null, dx = 0, horizontal = false, pid = null;
+
+    const comecar = (x, y, id) => { x0 = x; y0 = y; dx = 0; horizontal = false; pid = id; delete row.dataset.arrastou; };
+    const mover = (x, y) => {
+      if (x0 === null) return false;
+      dx = x - x0;
+      const dy = y - y0;
+      if (!horizontal){
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > LIMIAR){ x0 = null; return false; }   // é rolagem
+        if (Math.abs(dx) < LIMIAR) return false;
+        horizontal = true;
+        sw.classList.add("arrastando");
+        row.dataset.arrastou = "1";
+        if (pid !== null && sw.setPointerCapture){ try { sw.setPointerCapture(pid); } catch(e){} }
+      }
+      const base = sw.classList.contains("aberta") ? -ABRE : 0;
+      row.style.transform = `translateX(${Math.max(-ABRE, Math.min(0, base + dx))}px)`;
+      return true;
+    };
     const soltar = () => {
-      if (x0 === null) return;
+      if (x0 === null){ sw.classList.remove("arrastando"); return; }
       sw.classList.remove("arrastando");
       row.style.transform = "";
-      const aberta = sw.classList.contains("aberta");
-      if (dx < -40) { fecharArrastes(sw); sw.classList.add("aberta"); }
-      else if (dx > 40 || (aberta && dx < 0 && dx > -40)) sw.classList.remove("aberta");
-      x0 = null;
-      setTimeout(() => { delete row.dataset.arrastou; }, 60);
+      if (horizontal){
+        if (dx < -40){ fecharArrastes(sw); sw.classList.add("aberta"); }
+        else if (dx > 20) sw.classList.remove("aberta");
+      }
+      x0 = null; pid = null;
+      setTimeout(() => { delete row.dataset.arrastou; }, 80);
     };
+
+    sw.addEventListener("pointerdown", e => { if (!e.target.closest(".lixo")) comecar(e.clientX, e.clientY, e.pointerId); });
+    sw.addEventListener("pointermove", e => { mover(e.clientX, e.clientY); });
     sw.addEventListener("pointerup", soltar);
     sw.addEventListener("pointercancel", soltar);
-    sw.addEventListener("pointerleave", soltar);
+    // o toque de verdade: segura o gesto antes que o navegador o entenda como rolagem
+    sw.addEventListener("touchstart", e => { const t = e.touches[0]; if (t && !e.target.closest(".lixo")) comecar(t.clientX, t.clientY, null); }, {passive:true});
+    sw.addEventListener("touchmove", e => {
+      const t = e.touches[0]; if (!t) return;
+      if (mover(t.clientX, t.clientY) && e.cancelable) e.preventDefault();
+    }, {passive:false});
+    sw.addEventListener("touchend", soltar);
+    sw.addEventListener("touchcancel", soltar);
   });
 }
 function fecharArrastes(menos){
@@ -1185,11 +1211,12 @@ $("resp-x").onclick = cancelarResposta;
 async function apagar(m){ if (!confirm("Apagar esta mensagem para todos?")) return; const { error } = await sb.from("zeca_mensagens").update({apagada:true}).eq("id", m.id); if (error) toast("Não consegui apagar."); }
 
 // ---------------- enviar
-async function inserir(dados){
-  const reg = Object.assign({conversa_id: atual.id, autor_id: eu.id, autor_nome: perfis[eu.id].nome}, dados);
+async function inserir(dados, conv){
+  conv = conv || atual;
+  const reg = Object.assign({conversa_id: conv.id, autor_id: eu.id, autor_nome: perfis[eu.id].nome}, dados);
   if (reg.tipo !== "sistema"){
-    if (reg.texto) reg.texto = await cifrarTexto(atual, reg.texto);
-    if (reg.arquivo_nome) reg.arquivo_nome = await cifrarTexto(atual, reg.arquivo_nome);
+    if (reg.texto) reg.texto = await cifrarTexto(conv, reg.texto);
+    if (reg.arquivo_nome) reg.arquivo_nome = await cifrarTexto(conv, reg.arquivo_nome);
   }
   if (respondendo) reg.resposta_id = respondendo.id;
   cancelarResposta();
@@ -1265,9 +1292,15 @@ $("b-acao").onclick = () => {
 // 🚨 23/10/2026: foto de 3 ou 4 MB demorava para subir e para abrir, e enquanto isso a bolha mostrava só o nome
 // do arquivo (o "link" que ele viu). Toda foto passa a ir reduzida: lado maior de 1600 px, JPEG, o que derruba
 // de alguns MB para algumas centenas de KB sem estragar a leitura.
-const FOTO_LADO = 1600, FOTO_QUALIDADE = 0.82;
+const FOTO_LADO = 1280, FOTO_QUALIDADE = 0.78;
+function pareceFoto(f){
+  if (!f) return false;
+  if (/^image\//i.test(f.type || "")) return !/gif|svg/i.test(f.type);
+  if (f.type) return false;                       // tem tipo e não é imagem
+  return EXT_IMG.includes(((f.name || "").split(".").pop() || "").toLowerCase());
+}
 async function comprimirFoto(f){
-  if (!f || !/^image\//i.test(f.type || "") || /gif|svg/i.test(f.type || "")) return f;
+  if (!pareceFoto(f)) return f;
   try {
     const bit = await createImageBitmap(f);
     const esc = Math.min(1, FOTO_LADO / Math.max(bit.width, bit.height));
@@ -1282,20 +1315,46 @@ async function comprimirFoto(f){
     return new File([blob], nome, {type: "image/jpeg", lastModified: Date.now()});
   } catch(e){ return f; }      // formato que o navegador não abre (HEIC do iPhone, por exemplo): vai como veio
 }
+// bolha que aparece na hora, enquanto a foto ainda está subindo; some quando a mensagem de verdade chega
+function bolhaProvisoria(path, nome, url, legenda){
+  if (!atual || $("t-chat").hidden) return;
+  const m = {id: "subindo-" + path, criado_em: new Date().toISOString(), autor_id: eu.id,
+             autor_nome: (perfis[eu.id]||{}).nome, tipo: "arquivo", arquivo_path: path,
+             arquivo_mime: "image/jpeg", arquivo_nome: nome, texto: legenda || null, _subindo: true};
+  URLS.set(path, url);
+  const ant = msgsAtual[msgsAtual.length - 1];
+  msgsAtual.push(m);
+  const el = linha(m, ant);
+  el.classList.add("subindo");
+  $("msgs").appendChild(el);
+  rolar(true);
+}
+function tirarProvisoria(path){
+  const i = msgsAtual.findIndex(x => x._subindo && x.arquivo_path === path);
+  if (i >= 0) msgsAtual.splice(i, 1);
+  const el = $("msgs").querySelector(`.lin[data-id="subindo-${CSS.escape(path)}"]`);
+  if (el) el.remove();
+}
 async function subirArquivo(f, legenda){
   if (!f || !atual) return;
   if (f.size > 50*1024*1024){ toast("Arquivo acima de 50 MB."); return; }
-  const ehFoto = /^image\//i.test(f.type || "");
+  const ehFoto = pareceFoto(f);
+  const conv = atual;                                   // se ele trocar de conversa no meio, o envio continua certo
   f = await comprimirFoto(f);
-  toast((ehFoto ? "Enviando a foto" : "Enviando " + (f.name || "arquivo")) + "…");
   const nome = (f.name || ("foto-" + Date.now() + ".jpg")).replace(/[^\w.\-() ]+/g,"_");
-  const {dados, versao} = await cifrarBytes(atual, await f.arrayBuffer());
-  const path = `${atual.id}/${Date.now()}-arquivo` + (versao ? `-v${versao}.e2e` : `-${nome}`);
-  // a foto aparece NA HORA para quem mandou: guarda o endereço local com o mesmo caminho que a mensagem vai ter
-  if (ehFoto) URLS.set(path, URL.createObjectURL(f));
+  const {dados, versao} = await cifrarBytes(conv, await f.arrayBuffer());
+  const path = `${conv.id}/${Date.now()}-arquivo` + (versao ? `-v${versao}.e2e` : `-${nome}`);
+  if (ehFoto){
+    // a foto aparece NA HORA, do arquivo do próprio celular, com o mesmo caminho que a mensagem vai ter
+    bolhaProvisoria(path, nome, URL.createObjectURL(f), legenda);
+  } else {
+    toast("Enviando " + nome + "…");
+  }
   const up = await sb.storage.from("zeca-anexos").upload(path, dados, {contentType: versao ? "application/octet-stream" : (f.type || "application/octet-stream")});
-  if (up.error){ URLS.delete(path); toast("Não subiu o arquivo."); return; }
-  await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome, arquivo_mime:f.type || (ehFoto ? "image/jpeg" : ""), texto: legenda || null});
+  if (up.error){ tirarProvisoria(path); URLS.delete(path); toast("Não subiu o arquivo. Confira a internet."); return; }
+  const ok = await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome,
+                            arquivo_mime:f.type || (ehFoto ? "image/jpeg" : ""), texto: legenda || null}, conv);
+  if (!ok){ tirarProvisoria(path); URLS.delete(path); }
 }
 function botaoArquivo(rotulo, icone, aceita, captura){
   return `<label><span class="cc"><svg width="26" height="26"><use href="#${icone}"/></svg></span>${rotulo}<input type="file" class="alvo"${aceita ? ` accept="${aceita}"` : ""}${captura ? ` capture="${captura}"` : ""}></label>`;
@@ -1534,6 +1593,7 @@ function assinar(){
       if (m.autor_id !== eu.id && m.tipo !== "sistema") tocarAviso();
       if (atual && m.conversa_id === atual.id && !$("t-chat").hidden){
         if (msgsAtual.some(x => x.id === m.id)) return;
+        if (m.arquivo_path) tirarProvisoria(m.arquivo_path);     // a foto que estava subindo: entra a de verdade
         const M = $("msgs"), dg = M.querySelector(".digitando");
         if (dg && !m.autor_id) dg.remove();
         const ant = msgsAtual[msgsAtual.length - 1]; msgsAtual.push(m);
@@ -1903,7 +1963,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-10-23c";
+const VERSAO_APP = "2026-10-23d";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
@@ -1915,7 +1975,12 @@ async function conferirVersao(){
     const v = (await (await fetch("version.txt?t=" + Date.now(), {cache:"no-store"})).text()).trim();
     if (v && v !== VERSAO_APP){
       const k = "prosa_recarregou_" + v;
-      if (!sessionStorage.getItem(k)){ sessionStorage.setItem(k, "1"); location.reload(); }
+      if (!sessionStorage.getItem(k)){
+        sessionStorage.setItem(k, "1");
+        // 🚨 23/10: `location.reload()` sozinho reaproveitava o index guardado pelo navegador (o GitHub Pages pede
+        // cache de 10 min) e o celular ficava na versão velha. Com a versão na URL ele busca do servidor na hora.
+        location.replace(location.pathname + "?v=" + encodeURIComponent(v) + location.hash);
+      }
     }
   } catch(e){}
 }
