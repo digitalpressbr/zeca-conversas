@@ -92,6 +92,13 @@ button{cursor:pointer}
 .dica{font-size:13px;color:var(--muted);margin:6px 8px 0}
 .aviso button.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
 .row{display:grid;grid-template-columns:49px 1fr auto;gap:13px;align-items:center;padding:0 14px;width:100%;border:0;background:none;text-align:left}
+/* arrasta a conversa para a esquerda e aparece a lixeira */
+.sw{position:relative;overflow:hidden;background:var(--bg)}
+.sw>.row{position:relative;z-index:1;background:var(--bg);transition:transform .18s ease;will-change:transform}
+.sw>.lixo{position:absolute;z-index:0;right:0;top:0;bottom:1px;width:84px;border:0;background:#C0392B;color:#fff;display:grid;place-items:center;cursor:pointer}
+.sw>.lixo svg{width:23px;height:23px;fill:currentColor}
+.sw.aberta>.row{transform:translateX(-84px)}
+.sw.arrastando>.row{transition:none}
 .row:active{background:var(--hover)}
 .row .mid{min-width:0;padding:12px 0;border-bottom:1px solid var(--line);display:grid;gap:2px}
 .row .rt{padding:12px 0;border-bottom:1px solid var(--line);align-self:stretch;display:grid;justify-items:end;align-content:center;gap:5px;font-size:12.5px;color:var(--muted)}
@@ -368,7 +375,7 @@ button{cursor:pointer}
     <button class="ib" id="b-menu" type="button" aria-label="Mais opções"><svg><use href="#i-mais"/></svg></button>
   </div>
   <div class="scroll" id="lista-sc">
-    <label class="busca" for="q"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="q" type="search" placeholder="Pesquisar" autocomplete="off"></label>
+    <label class="busca" for="q"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="q" type="search" placeholder="Pesquisar conversa ou pessoa" autocomplete="off"></label>
     <div class="chips" role="group" aria-label="Filtro">
       <button type="button" data-f="tudo" aria-pressed="true">Tudo</button>
       <button type="button" data-f="naolidas" aria-pressed="false">Não lidas</button>
@@ -743,19 +750,81 @@ function previa(c){
   }
   return {txt: quem + descreve(u), tk};
 }
+// gente que casa com o que foi digitado e ainda não tem conversa aberta na lista
+function pessoasDaBusca(q){
+  if (!q) return [];
+  const comConversa = new Set(conversas.filter(c => c.tipo === "individual" && c.outro).map(c => c.outro.id));
+  return Object.values(perfis)
+    .filter(p => p.id !== eu.id && !comConversa.has(p.id) && (p.nome||"").toLowerCase().includes(q))
+    .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+}
 function desenharLista(){
   const q = ($("q").value || "").toLowerCase().trim();
   const vis = conversas.filter(c => (filtro === "naolidas" ? c.naoLidas : filtro === "grupos" ? c.tipo === "grupo" : true) && (!q || c.titulo.toLowerCase().includes(q)));
+  const gente = filtro === "tudo" ? pessoasDaBusca(q) : [];
   const L = $("lista");
   if (!conversas.length) L.innerHTML = `<div class="vazio"><b>Nenhuma conversa ainda</b><span>Toque no botão verde para conversar com o Zeca, com alguém da equipe ou criar um grupo.</span></div>`;
-  else if (!vis.length) L.innerHTML = `<div class="vazio"><span>Nenhuma conversa neste filtro.</span></div>`;
+  else if (!vis.length && !gente.length) L.innerHTML = `<div class="vazio"><span>${q ? "Ninguém com esse nome." : "Nenhuma conversa neste filtro."}</span></div>`;
   else {
     L.innerHTML = vis.map(c => { const p = previa(c), u = c.ultima;
-      return `<button type="button" class="row" data-c="${c.id}">${avConversa(c)}<span class="mid"><span class="nm">${esc(c.titulo)}</span><span class="pv">${p.tk}<span class="t">${esc(p.txt)}</span></span></span>
-      <span class="rt ${c.naoLidas?"un":""}"><span>${u?quando(u.criado_em):""}</span>${c.naoLidas?`<span class="n">${c.naoLidas}</span>`:"<span style='height:21px'></span>"}</span></button>`; }).join("");
-    L.querySelectorAll(".row").forEach(b => b.onclick = () => abrir(b.dataset.c));
+      return `<div class="sw" data-sw="${c.id}"><button type="button" class="row" data-c="${c.id}">${avConversa(c)}<span class="mid"><span class="nm">${esc(c.titulo)}</span><span class="pv">${p.tk}<span class="t">${esc(p.txt)}</span></span></span>
+      <span class="rt ${c.naoLidas?"un":""}"><span>${u?quando(u.criado_em):""}</span>${c.naoLidas?`<span class="n">${c.naoLidas}</span>`:"<span style='height:21px'></span>"}</span></button><button type="button" class="lixo" data-apagar="${c.id}" aria-label="Apagar esta conversa"><svg><use href="#i-lixo"/></svg></button></div>`; }).join("")
+      + (gente.length ? `<div class="sec">Começar conversa</div>` + gente.map(p => `<button type="button" class="row" data-ind="${p.id}">${avatar(p)}<span class="mid"><span class="nm">${esc(p.nome)}</span><span class="pv"><span class="t">${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</span></span></span><span class="rt"><span style="height:21px"></span></span></button>`).join("") : "");
+    L.querySelectorAll(".row[data-c]").forEach(b => b.onclick = () => { if (!b.dataset.arrastou) abrir(b.dataset.c); });
+    L.querySelectorAll("[data-apagar]").forEach(b => b.onclick = () => apagarConversa(b.dataset.apagar));
+    L.querySelectorAll("[data-ind]").forEach(b => b.onclick = () => { $("q").value = ""; individual(b.dataset.ind); });
+    ligarArraste(L);
   }
   atualizarBadge();
+}
+// arrastar para a esquerda abre a lixeira; para a direita fecha. Serve no toque e no mouse.
+function ligarArraste(L){
+  L.querySelectorAll(".sw").forEach(sw => {
+    const row = sw.querySelector(".row");
+    let x0 = null, y0 = null, dx = 0;
+    sw.addEventListener("pointerdown", e => {
+      if (e.target.closest(".lixo")) return;
+      x0 = e.clientX; y0 = e.clientY; dx = 0; delete row.dataset.arrastou;
+    });
+    sw.addEventListener("pointermove", e => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      if (Math.abs(e.clientY - y0) > 24 && Math.abs(dx) < 12){ x0 = null; return; }   // está rolando a tela
+      if (Math.abs(dx) < 6) return;
+      sw.classList.add("arrastando");
+      row.dataset.arrastou = "1";
+      const base = sw.classList.contains("aberta") ? -84 : 0;
+      row.style.transform = `translateX(${Math.max(-84, Math.min(0, base + dx))}px)`;
+    });
+    const soltar = () => {
+      if (x0 === null) return;
+      sw.classList.remove("arrastando");
+      row.style.transform = "";
+      const aberta = sw.classList.contains("aberta");
+      if (dx < -40) { fecharArrastes(sw); sw.classList.add("aberta"); }
+      else if (dx > 40 || (aberta && dx < 0 && dx > -40)) sw.classList.remove("aberta");
+      x0 = null;
+      setTimeout(() => { delete row.dataset.arrastou; }, 60);
+    };
+    sw.addEventListener("pointerup", soltar);
+    sw.addEventListener("pointercancel", soltar);
+    sw.addEventListener("pointerleave", soltar);
+  });
+}
+function fecharArrastes(menos){
+  document.querySelectorAll(".sw.aberta").forEach(s => { if (s !== menos) s.classList.remove("aberta"); });
+}
+async function apagarConversa(id){
+  const c = conversas.find(x => x.id === id);
+  if (!c) return;
+  fecharArrastes();
+  if (!await confirmar(`Apagar a conversa com ${c.titulo}?`,
+                       "Ela sai da sua lista. As mensagens continuam com a outra pessoa, e a conversa volta se chegar mensagem nova.")) return;
+  const { error } = await sb.from("zeca_membros").delete().eq("conversa_id", id).eq("perfil_id", eu.id);
+  if (error){ toast("Não consegui apagar agora."); return; }
+  conversas = conversas.filter(x => x.id !== id);
+  desenharLista();
+  toast("Conversa apagada da sua lista.");
 }
 $("q").addEventListener("input", desenharLista);
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filtro = b.dataset.f; document.querySelectorAll(".chips button").forEach(o => o.setAttribute("aria-pressed", o === b)); desenharLista(); });
@@ -1456,6 +1525,21 @@ function folha(html){
   $("folha").hidden = false;
   if (!folhaNoHistorico){ folhaNoHistorico = true; history.pushState({folha:1}, ""); }   // o voltar do Android fecha a folha, não o app
 }
+// pergunta de sim ou não na mesma folha das outras telas; devolve true/false
+function confirmar(titulo, detalhe){
+  return new Promise(ok => {
+    folha(`<h3>${esc(titulo)}</h3>
+      ${detalhe ? `<p style="margin:2px 6px 14px;color:var(--muted);font-size:14.5px;line-height:1.45">${esc(detalhe)}</p>` : ""}
+      <button class="btn" type="button" id="cf-sim" style="background:#C0392B">Apagar</button>
+      <button class="btn sec" type="button" id="cf-nao" style="margin-top:8px">Deixar como está</button>`);
+    let respondeu = false;
+    const fim = v => { if (respondeu) return; respondeu = true; fecharFolha(); ok(v); };
+    $("cf-sim").onclick = () => fim(true);
+    $("cf-nao").onclick = () => fim(false);
+    const obs = new MutationObserver(() => { if ($("folha").hidden) { obs.disconnect(); fim(false); } });
+    obs.observe($("folha"), {attributes:true, attributeFilter:["hidden"]});   // fechou pela seta ou pelo voltar = não
+  });
+}
 function fecharFolha(){
   $("folha").hidden = true;
   if (folhaNoHistorico){ folhaNoHistorico = false; if (history.state && history.state.folha) history.back(); }
@@ -1467,26 +1551,46 @@ $("b-nova").onclick = () => {
   folha(`<h3>Nova conversa</h3>
     <button class="op" type="button" id="n-grupo"><span class="cc"><svg width="24" height="24"><use href="#i-grupo"/></svg></span><span><b>Novo grupo</b></span></button>
     <button class="op" type="button" id="n-pessoa"><span class="cc"><svg width="24" height="24"><use href="#i-nova"/></svg></span><span><b>Adicionar pessoa</b><small>Convidar pelo número do celular</small></span></button>
-    <label class="busca" for="n-busca" style="margin:6px 0"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="n-busca" type="text" inputmode="text" autocapitalize="none" placeholder="Procurar por número ou @usuário"><button type="button" class="ib" id="n-busca-ok" aria-label="Procurar" style="width:32px;height:32px"><svg width="18" height="18"><use href="#i-enviar"/></svg></button></label>
-    <div class="sec">Contatos</div>
-    <button class="op" type="button" data-ind="zeca">${avatar({zeca:true})}<span><b>Zeca</b><small>Assistente da Cerrado</small></span></button>
-    ${outros.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</small></span></button>`).join("")}`);
+    <label class="busca" for="n-busca" style="margin:6px 0"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="n-busca" type="text" inputmode="text" autocapitalize="none" placeholder="Procurar por nome, número ou @usuário"><button type="button" class="ib" id="n-busca-ok" aria-label="Procurar" style="width:32px;height:32px"><svg width="18" height="18"><use href="#i-enviar"/></svg></button></label>
+    <div class="sec" id="n-sec">Contatos</div>
+    <div id="n-gente"></div>`);
+  // digitar o nome já filtra a lista de gente; número ou @usuário continua no botão de procurar
+  const pintarGente = () => {
+    const q = ($("n-busca").value || "").toLowerCase().trim();
+    const casa = p => !q || (p.nome||"").toLowerCase().includes(q) || ("@" + (p.usuario||"")).includes(q);
+    const lista = outros.filter(casa).sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+    $("n-sec").textContent = q ? (lista.length ? "Encontrei" : "Ninguém com esse nome") : "Contatos";
+    $("n-gente").innerHTML = ((!q || "zeca".includes(q)) ? `<button class="op" type="button" data-ind="zeca">${avatar({zeca:true})}<span><b>Zeca</b><small>Assistente da Cerrado</small></span></button>` : "")
+      + lista.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</small></span></button>`).join("");
+    $("n-gente").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => individual(b.dataset.ind));
+  };
+  pintarGente();
   $("n-grupo").onclick = novoGrupo;
   $("n-pessoa").onclick = () => adicionarPessoa();
   $("n-busca-ok").onclick = procurarNumero;
+  $("n-busca").addEventListener("input", pintarGente);
   $("n-busca").addEventListener("keydown", e => { if (e.key === "Enter") procurarNumero(); });
-  $("folha-cx").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => individual(b.dataset.ind));
 };
+// 🚨 23/10/2026: dois toques seguidos criaram DUAS conversas Duda↔Bruna no mesmo segundo, e o nome aparecia
+// repetido na lista. Agora a criação é uma por vez e, antes de criar, relê do banco (a outra pessoa pode ter
+// aberto a conversa no aparelho dela).
+let criandoIndividual = false;
 async function individual(alvo){
   fecharFolha();
-  const ja = conversas.find(c => c.tipo === "individual" && (alvo === "zeca" ? (c.zeca && c.membros.length === 1) : (!c.zeca && c.membros.includes(alvo) && c.membros.length === 2)));
+  if (criandoIndividual) return;
+  const achar = () => conversas.find(c => c.tipo === "individual" && (alvo === "zeca" ? (c.zeca && c.membros.length === 1) : (!c.zeca && c.membros.includes(alvo) && c.membros.length === 2)));
+  let ja = achar();
+  if (!ja){ await carregarConversas(); ja = achar(); }
   if (ja){ abrir(ja.id); return; }
-  const { data: c, error } = await sb.from("zeca_conversas").insert({tipo:"individual", zeca: alvo === "zeca", criado_por: eu.id}).select().single();
-  if (error){ toast("Não consegui criar a conversa."); return; }
-  const mems = [{conversa_id:c.id, perfil_id:eu.id}]; if (alvo !== "zeca") mems.push({conversa_id:c.id, perfil_id:alvo});
-  await sb.from("zeca_membros").insert(mems);
-  await criarCK(c);
-  await carregarConversas(); abrir(c.id);
+  criandoIndividual = true;
+  try {
+    const { data: c, error } = await sb.from("zeca_conversas").insert({tipo:"individual", zeca: alvo === "zeca", criado_por: eu.id}).select().single();
+    if (error){ toast("Não consegui criar a conversa."); return; }
+    const mems = [{conversa_id:c.id, perfil_id:eu.id}]; if (alvo !== "zeca") mems.push({conversa_id:c.id, perfil_id:alvo});
+    await sb.from("zeca_membros").insert(mems);
+    await criarCK(c);
+    await carregarConversas(); abrir(c.id);
+  } finally { criandoIndividual = false; }
 }
 function novoGrupo(){
   const outros = Object.values(perfis).filter(p => p.id !== eu.id);
@@ -1751,7 +1855,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-10-23a";
+const VERSAO_APP = "2026-10-23b";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
