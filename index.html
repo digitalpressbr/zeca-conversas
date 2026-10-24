@@ -150,6 +150,10 @@ button{cursor:pointer}
 .arq b{display:block;font-size:14px;line-height:1.25;font-weight:500}
 .arq small{color:var(--muted);font-size:12px}
 .img{display:block;max-width:260px;width:100%;min-height:80px;border-radius:6px;cursor:pointer;background:var(--quote)}
+/* foto ainda abrindo: moldura cinza com a marca da foto, nunca o nome do arquivo */
+.img.carregando{width:260px;height:190px;object-fit:cover;background:var(--quote) center/34px no-repeat
+  url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9a92' stroke-width='1.6'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='9.5' r='1.8'/%3E%3Cpath d='m21 16-5-5-9 9'/%3E%3C/svg%3E")}
+.refoto{display:block;width:260px;height:190px;border:0;border-radius:6px;background:var(--quote);color:var(--accent);font-weight:600;font-size:15px;cursor:pointer}
 .aud{display:flex;align-items:center;gap:8px;min-width:230px;padding:2px 0}
 .aud button{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--accent2);display:grid;place-items:center;flex:none}
 .aud.ouvido button{color:var(--muted)}
@@ -732,9 +736,16 @@ async function carregarConversas(){
     return c;
   }));
 }
+// foto é foto mesmo quando o celular manda sem o tipo: aí vale a extensão do nome
+const EXT_IMG = ["jpg","jpeg","png","webp","gif","bmp","heic","heif","avif"];
+function ehImagem(m){
+  if ((m.arquivo_mime||"").startsWith("image/")) return true;
+  if (m.arquivo_mime) return false;
+  return EXT_IMG.includes(((m.arquivo_nome||"").split(".").pop()||"").toLowerCase());
+}
 function descreve(u){
   if (u.apagada) return u.autor_id === eu.id ? "🚫 Você apagou esta mensagem" : "🚫 Esta mensagem foi apagada";
-  if (u.tipo === "arquivo") return (u.arquivo_mime||"").startsWith("image/") ? "📷 Foto" : (u.arquivo_mime||"").startsWith("video/") ? "🎬 Vídeo" : "📄 " + (u.arquivo_nome||"Arquivo");
+  if (u.tipo === "arquivo") return ehImagem(u) ? "📷 Foto" : (u.arquivo_mime||"").startsWith("video/") ? "🎬 Vídeo" : "📄 " + (u.arquivo_nome||"Arquivo");
   if (u.tipo === "recado") return "🎥 Recado de vídeo";
   if (u.tipo === "audio") return "🎤 Áudio";
   if (u.tipo === "figurinha") return "💟 Figurinha";
@@ -898,10 +909,10 @@ function linha(m, ant){
     h += `<video class="vid" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "video/mp4")}" controls playsinline preload="metadata"></video><div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
   }
   else if (m.tipo === "arquivo"){
-    const ehImg = (m.arquivo_mime||"").startsWith("image/");
+    const ehImg = ehImagem(m);
     const ext = ((m.arquivo_nome||"").split(".").pop()||"").toLowerCase();
     const icls = ext === "kml" || ext === "kmz" ? "kml" : (ext.startsWith("xls") || ext === "csv") ? "xls" : ext.startsWith("doc") ? "doc" : "";
-    h += ehImg ? `<img class="img" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "image/jpeg")}" alt="${esc(m.arquivo_nome)}">`
+    h += ehImg ? `<img class="img carregando" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "image/jpeg")}" alt="">`
       : `<button type="button" class="arq" data-path="${esc(m.arquivo_path)}" data-mime="${esc(m.arquivo_mime || "application/octet-stream")}"><span class="ic ${icls}">${esc(ext.toUpperCase().slice(0,4) || "ARQ")}</span><span><b>${esc(m.arquivo_nome)}</b><small>Toque para abrir</small></span></button>`;
     h += `<div class="tx">${m.texto ? fmt(m.texto) : ""}${meta}</div>`;
   } else if (m._sem_chave){ h += `<div class="tx" style="font-style:italic;color:var(--muted)">🔒 Mensagem protegida. Abra a Prosa no celular onde você já entrou, ou digite o seu PIN para liberar.${meta}</div>`;
@@ -947,7 +958,20 @@ function ligarMidia(b){
       else { v.pause(); pl.hidden = false; }
     };
   });
-  b.querySelectorAll("img[data-path]").forEach(async el => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u){ el.src = u; el.onclick = () => visor(u); } });
+  // foto: enquanto não abre fica a moldura cinza; ⛔ nunca o nome do arquivo na tela. Falhou, vira botão de tentar
+  b.querySelectorAll("img[data-path]").forEach(async el => {
+    const mostrar = u => { el.onload = () => el.classList.remove("carregando"); el.src = u; el.onclick = () => visor(u); };
+    const erro = () => {
+      el.classList.remove("carregando");
+      const bt = document.createElement("button");
+      bt.type = "button"; bt.className = "refoto"; bt.textContent = "Ver foto";
+      bt.onclick = async () => { bt.replaceWith(el); el.classList.add("carregando"); URLS.delete(el.dataset.path); const u2 = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u2) mostrar(u2); else el.replaceWith(bt); };
+      el.replaceWith(bt);
+    };
+    el.onerror = erro;
+    const u = await urlDoArquivo(el.dataset.path, el.dataset.mime);
+    if (u) mostrar(u); else erro();
+  });
   b.querySelectorAll("button.arq").forEach(el => el.onclick = async () => { const u = await urlDoArquivo(el.dataset.path, el.dataset.mime); if (u) window.open(u, "_blank"); });
   b.querySelectorAll(".aud").forEach(el => {
     let au = null, raf = 0; const caminho = el.dataset.path;
@@ -1238,16 +1262,40 @@ $("b-acao").onclick = () => {
   const t = $("txt").value;
   if (t.trim()){ $("txt").value = ""; ajustarTxt(); enviarTexto(t); }
 };
+// 🚨 23/10/2026: foto de 3 ou 4 MB demorava para subir e para abrir, e enquanto isso a bolha mostrava só o nome
+// do arquivo (o "link" que ele viu). Toda foto passa a ir reduzida: lado maior de 1600 px, JPEG, o que derruba
+// de alguns MB para algumas centenas de KB sem estragar a leitura.
+const FOTO_LADO = 1600, FOTO_QUALIDADE = 0.82;
+async function comprimirFoto(f){
+  if (!f || !/^image\//i.test(f.type || "") || /gif|svg/i.test(f.type || "")) return f;
+  try {
+    const bit = await createImageBitmap(f);
+    const esc = Math.min(1, FOTO_LADO / Math.max(bit.width, bit.height));
+    const w = Math.max(1, Math.round(bit.width * esc)), h = Math.max(1, Math.round(bit.height * esc));
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    cv.getContext("2d").drawImage(bit, 0, 0, w, h);
+    if (bit.close) bit.close();
+    const blob = await new Promise(r => cv.toBlob(r, "image/jpeg", FOTO_QUALIDADE));
+    if (!blob) return f;
+    if (esc === 1 && blob.size >= f.size) return f;                       // já estava pequena
+    const nome = (f.name || "foto").replace(/\.[^.]+$/, "") + ".jpg";
+    return new File([blob], nome, {type: "image/jpeg", lastModified: Date.now()});
+  } catch(e){ return f; }      // formato que o navegador não abre (HEIC do iPhone, por exemplo): vai como veio
+}
 async function subirArquivo(f, legenda){
   if (!f || !atual) return;
   if (f.size > 50*1024*1024){ toast("Arquivo acima de 50 MB."); return; }
-  toast("Enviando " + (f.name || "arquivo") + "…");
+  const ehFoto = /^image\//i.test(f.type || "");
+  f = await comprimirFoto(f);
+  toast((ehFoto ? "Enviando a foto" : "Enviando " + (f.name || "arquivo")) + "…");
   const nome = (f.name || ("foto-" + Date.now() + ".jpg")).replace(/[^\w.\-() ]+/g,"_");
   const {dados, versao} = await cifrarBytes(atual, await f.arrayBuffer());
   const path = `${atual.id}/${Date.now()}-arquivo` + (versao ? `-v${versao}.e2e` : `-${nome}`);
+  // a foto aparece NA HORA para quem mandou: guarda o endereço local com o mesmo caminho que a mensagem vai ter
+  if (ehFoto) URLS.set(path, URL.createObjectURL(f));
   const up = await sb.storage.from("zeca-anexos").upload(path, dados, {contentType: versao ? "application/octet-stream" : (f.type || "application/octet-stream")});
-  if (up.error){ toast("Não subiu o arquivo."); return; }
-  await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome, arquivo_mime:f.type || "", texto: legenda || null});
+  if (up.error){ URLS.delete(path); toast("Não subiu o arquivo."); return; }
+  await inserir({tipo:"arquivo", arquivo_path:path, arquivo_nome:nome, arquivo_mime:f.type || (ehFoto ? "image/jpeg" : ""), texto: legenda || null});
 }
 function botaoArquivo(rotulo, icone, aceita, captura){
   return `<label><span class="cc"><svg width="26" height="26"><use href="#${icone}"/></svg></span>${rotulo}<input type="file" class="alvo"${aceita ? ` accept="${aceita}"` : ""}${captura ? ` capture="${captura}"` : ""}></label>`;
@@ -1855,7 +1903,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-10-23b";
+const VERSAO_APP = "2026-10-23c";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
