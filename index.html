@@ -426,7 +426,8 @@ const EQUIPE = [
   {nome:"Rodrigo", email:"rodrigo@zeca.cerradoconsultoria.agr.br", cor:"#2F6B9A"},
   {nome:"Isabela", email:"isabela@zeca.cerradoconsultoria.agr.br", cor:"#6C4CB8"},
   {nome:"Cristiane", email:"cristiane@zeca.cerradoconsultoria.agr.br", cor:"#B4452F"},
-  {nome:"Victor", email:"victor@zeca.cerradoconsultoria.agr.br", cor:"#9A5B12"}
+  {nome:"Victor", email:"victor@zeca.cerradoconsultoria.agr.br", cor:"#9A5B12"},
+  {nome:"Duda", email:"duda@zeca.cerradoconsultoria.agr.br", cor:"#A63F79"}
 ];
 const CORES_NOME = ["#1F7A4D","#B4452F","#6C4CB8","#2F6B9A","#9A5B12","#A63F79","#2A7F87","#7A6A12"];
 const ZECA_FACES = ["zeca_01_feliz","zeca_02_comemorando","zeca_03_ok","zeca_04_apontando","zeca_05_preocupado","zeca_06_triste","zeca_07_chorando","zeca_08_duvida","zeca_09_aniversario","zeca_10_pensativo","zeca_11_joinha","zeca_12_boa_noite","zeca_13_bom_dia_cafe","zeca_14_aperto_mao","zeca_15_assinando_documento","zeca_16_acenando","zeca_17_obrigado","zeca_18_apontando_lado"];
@@ -1750,7 +1751,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-09-23e";
+const VERSAO_APP = "2026-10-23a";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
