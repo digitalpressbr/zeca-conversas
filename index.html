@@ -312,6 +312,7 @@ button{cursor:pointer}
   <symbol id="i-desce" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l12-7.5z"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></symbol>
+  <symbol id="i-pessoa" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></g></symbol>
   <symbol id="i-grupo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g></symbol>
   <symbol id="i-fig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 4h16v10l-6 6H4z"/><path d="M14 20v-6h6"/></g></symbol>
   <symbol id="i-galeria" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
@@ -381,10 +382,11 @@ button{cursor:pointer}
 <section class="tela" id="t-lista" hidden>
   <div class="hdr">
     <h1>Prosa</h1>
+    <button class="ib" id="b-pessoa" type="button" aria-label="Procurar ou convidar alguém"><svg><use href="#i-pessoa"/></svg></button>
     <button class="ib" id="b-menu" type="button" aria-label="Mais opções"><svg><use href="#i-mais"/></svg></button>
   </div>
   <div class="scroll" id="lista-sc">
-    <label class="busca" for="q"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="q" type="search" placeholder="Pesquisar conversa ou pessoa" autocomplete="off"></label>
+    <label class="busca" for="q"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="q" type="search" placeholder="Procurar pessoa ou conversa" autocomplete="off"></label>
     <div class="chips" role="group" aria-label="Filtro">
       <button type="button" data-f="tudo" aria-pressed="true">Tudo</button>
       <button type="button" data-f="naolidas" aria-pressed="false">Não lidas</button>
@@ -631,8 +633,8 @@ async function meusConvites(){
     catch(e){ toast(e.message); b.disabled = false; }
   });
 }
-async function procurarNumero(){
-  const bruto = ($("n-busca").value || "").trim();
+async function procurarNumero(texto){
+  const bruto = (typeof texto === "string" ? texto : ($("n-busca") ? $("n-busca").value : "")).trim();
   const n = bruto.replace(/\D/g, "");
   const ehUsuario = /^@?[a-zA-Z0-9._-]{3,20}$/.test(bruto) && n.length < 10;
   if (!ehUsuario && n.length < 10){ toast("Digite o número com DDD ou o @usuário."); return; }
@@ -641,7 +643,7 @@ async function procurarNumero(){
   const p = (data || [])[0];
   if (!p){
     if (ehUsuario){ toast("Não achei esse @usuário."); return; }
-    adicionarPessoa($("n-busca").value); toast("Esse número ainda não está na Prosa. Convide a pessoa."); return;
+    adicionarPessoa(bruto); toast("Esse número ainda não está na Prosa. Convide a pessoa."); return;
   }
   if (p.id === eu.id){ toast("Esse número é o seu."); return; }
   await sb.rpc("zeca_adicionar_contato", {p: p.id}); await carregarPerfis(); individual(p.id);
@@ -777,18 +779,29 @@ function pessoasDaBusca(q){
 function desenharLista(){
   const q = ($("q").value || "").toLowerCase().trim();
   const vis = conversas.filter(c => (filtro === "naolidas" ? c.naoLidas : filtro === "grupos" ? c.tipo === "grupo" : true) && (!q || c.titulo.toLowerCase().includes(q)));
-  const gente = filtro === "tudo" ? pessoasDaBusca(q) : [];
+  const gente = pessoasDaBusca(q);
+  const bruto = ($("q").value || "").trim();
+  const digitos = bruto.replace(/\D/g, "");
+  // com a busca escrita, a primeira tela também oferece procurar por número/@usuário e convidar
+  const acoes = !q ? "" : `<div class="sec">Procurar ou convidar</div>`
+    + ((digitos.length >= 10 || /^@/.test(bruto))
+        ? `<button class="op" type="button" id="l-procurar"><span class="cc"><svg width="24" height="24"><use href="#i-busca"/></svg></span><span><b>Procurar ${esc(bruto)}</b><small>por número ou @usuário</small></span></button>` : "")
+    + `<button class="op" type="button" id="l-convidar"><span class="cc"><svg width="24" height="24"><use href="#i-pessoa"/></svg></span><span><b>Convidar pelo WhatsApp</b><small>quem ainda não está na Prosa</small></span></button>`;
   const L = $("lista");
-  if (!conversas.length) L.innerHTML = `<div class="vazio"><b>Nenhuma conversa ainda</b><span>Toque no botão verde para conversar com o Zeca, com alguém da equipe ou criar um grupo.</span></div>`;
-  else if (!vis.length && !gente.length) L.innerHTML = `<div class="vazio"><span>${q ? "Ninguém com esse nome." : "Nenhuma conversa neste filtro."}</span></div>`;
+  if (!conversas.length && !q) L.innerHTML = `<div class="vazio"><b>Nenhuma conversa ainda</b><span>Toque no botão verde para conversar com o Zeca, com alguém da equipe ou criar um grupo.</span></div>`;
+  else if (!vis.length && !gente.length && !q) L.innerHTML = `<div class="vazio"><span>Nenhuma conversa neste filtro.</span></div>`;
   else {
     L.innerHTML = vis.map(c => { const p = previa(c), u = c.ultima;
       return `<div class="sw" data-sw="${c.id}"><button type="button" class="row" data-c="${c.id}">${avConversa(c)}<span class="mid"><span class="nm">${esc(c.titulo)}</span><span class="pv">${p.tk}<span class="t">${esc(p.txt)}</span></span></span>
       <span class="rt ${c.naoLidas?"un":""}"><span>${u?quando(u.criado_em):""}</span>${c.naoLidas?`<span class="n">${c.naoLidas}</span>`:"<span style='height:21px'></span>"}</span></button><button type="button" class="lixo" data-apagar="${c.id}" aria-label="Apagar esta conversa"><svg><use href="#i-lixo"/></svg></button></div>`; }).join("")
-      + (gente.length ? `<div class="sec">Começar conversa</div>` + gente.map(p => `<button type="button" class="row" data-ind="${p.id}">${avatar(p)}<span class="mid"><span class="nm">${esc(p.nome)}</span><span class="pv"><span class="t">${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</span></span></span><span class="rt"><span style="height:21px"></span></span></button>`).join("") : "");
+      + (gente.length ? `<div class="sec">Começar conversa</div>` + gente.map(p => `<button type="button" class="row" data-ind="${p.id}">${avatar(p)}<span class="mid"><span class="nm">${esc(p.nome)}</span><span class="pv"><span class="t">${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</span></span></span><span class="rt"><span style="height:21px"></span></span></button>`).join("") : "")
+      + (q && !vis.length && !gente.length ? `<div class="vazio" style="padding:18px 12px 4px"><span>Ninguém com esse nome por aqui.</span></div>` : "")
+      + acoes;
     L.querySelectorAll(".row[data-c]").forEach(b => b.onclick = () => { if (!b.dataset.arrastou) abrir(b.dataset.c); });
     L.querySelectorAll("[data-apagar]").forEach(b => b.onclick = () => apagarConversa(b.dataset.apagar));
     L.querySelectorAll("[data-ind]").forEach(b => b.onclick = () => { $("q").value = ""; individual(b.dataset.ind); });
+    if ($("l-procurar")) $("l-procurar").onclick = () => procurarNumero(bruto);
+    if ($("l-convidar")) $("l-convidar").onclick = () => adicionarPessoa(digitos.length >= 10 ? bruto : "");
     ligarArraste(L);
   }
   atualizarBadge();
@@ -864,6 +877,31 @@ async function apagarConversa(id){
   toast("Conversa apagada da sua lista.");
 }
 $("q").addEventListener("input", desenharLista);
+// o ícone de pessoa no alto leva direto a procurar e convidar, sem passar pelo botão verde
+$("b-pessoa").onclick = () => {
+  const bruto = ($("q").value || "").trim();
+  folha(`<h3>Procurar alguém</h3>
+    <label class="busca" for="p-busca" style="margin:6px 0"><svg width="20" height="20"><use href="#i-busca"/></svg><input id="p-busca" type="text" inputmode="text" autocapitalize="none" placeholder="Nome, número ou @usuário" value="${esc(bruto)}"><button type="button" class="ib" id="p-ok" aria-label="Procurar" style="width:32px;height:32px"><svg width="18" height="18"><use href="#i-enviar"/></svg></button></label>
+    <div class="sec" id="p-sec">Quem está na Prosa</div>
+    <div id="p-gente"></div>
+    <button class="op" type="button" id="p-convidar"><span class="cc"><svg width="24" height="24"><use href="#i-pessoa"/></svg></span><span><b>Convidar pelo WhatsApp</b><small>quem ainda não está na Prosa</small></span></button>`);
+  const pintar = () => {
+    const t = ($("p-busca").value || "").toLowerCase().trim();
+    const lista = Object.values(perfis).filter(p => p.id !== eu.id)
+      .filter(p => !t || (p.nome||"").toLowerCase().includes(t) || ("@" + (p.usuario||"")).includes(t))
+      .sort((a, b) => (a.nome||"").localeCompare(b.nome||"", "pt-BR"));
+    $("p-sec").textContent = t ? (lista.length ? "Encontrei" : "Ninguém com esse nome") : "Quem está na Prosa";
+    $("p-gente").innerHTML = ((!t || "zeca".includes(t)) ? `<button class="op" type="button" data-ind="zeca">${avatar({zeca:true})}<span><b>Zeca</b><small>Assistente da Cerrado</small></span></button>` : "")
+      + lista.map(p => `<button class="op" type="button" data-ind="${p.id}">${avatar(p)}<span><b>${esc(p.nome)}</b><small>${esc(p.recado || (p.papel === "equipe" ? "Equipe Cerrado" : "Convidado"))}</small></span></button>`).join("");
+    $("p-gente").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => { $("q").value = ""; desenharLista(); individual(b.dataset.ind); });
+  };
+  pintar();
+  $("p-busca").addEventListener("input", pintar);
+  $("p-busca").addEventListener("keydown", e => { if (e.key === "Enter") procurarNumero($("p-busca").value); });
+  $("p-ok").onclick = () => procurarNumero($("p-busca").value);
+  $("p-convidar").onclick = () => adicionarPessoa(($("p-busca").value || "").replace(/\D/g,"").length >= 10 ? $("p-busca").value : "");
+  setTimeout(() => $("p-busca").focus(), 120);
+};
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filtro = b.dataset.f; document.querySelectorAll(".chips button").forEach(o => o.setAttribute("aria-pressed", o === b)); desenharLista(); });
 let tLista = null;
 function atualizarLista(){ clearTimeout(tLista); tLista = setTimeout(async () => { await carregarConversas(); if (!$("t-lista").hidden) desenharLista(); }, 250); }
@@ -1963,7 +2001,7 @@ gravarPrefsAviso(prefsAviso());
 // ---------------- avisos (Web Push)
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const ehSamsung = /SamsungBrowser/i.test(navigator.userAgent);
-const VERSAO_APP = "2026-10-23d";
+const VERSAO_APP = "2026-10-24a";
 function navegador(){ const u = navigator.userAgent; return /SamsungBrowser/.test(u) ? "Navegador da Samsung" : /EdgA?\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Google Chrome" : /Safari/.test(u) ? "Safari" : "Outro"; }
 if (ehSamsung){
   $("aviso-samsung").hidden = false;
